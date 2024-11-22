@@ -18,4 +18,4 @@ A toolkit for adding Torznab APIs to programs.
 
 ## Notes
 
-Thanks to [torznab.github.io](https://torznab.github.io), as it's my primary reference for this.
+Thanks to [torznab.github.io](https://torznab.github.io/spec-1.3-draft/index.html), as it's my primary reference for this.
