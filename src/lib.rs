@@ -18,15 +18,15 @@
 //!
 //! Note: I wrote the line above when I was tired. Don't ask me what *literal* truckloads of structs means, I don't know either.
 
-mod api;
-pub mod config;
+pub mod api;
 pub mod data;
 
-use config::{Caps, Config};
-use rocket;
+use rocket::{self};
 
-pub fn run(config: Config, caps: Caps) -> Result<bool, String> {
+pub fn run(conf: data::Config, caps: data::Caps) -> Result<bool, String> {
     /// Runs the server
-    rocket::build().mount("/", rocket::routes![api::caps]);
+    //rocket::build()
+    //    .mount("/", rocket::routes![conf.caps])
+    //    .launch();
     return Ok(true);
 }
