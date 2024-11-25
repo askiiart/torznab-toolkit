@@ -23,10 +23,8 @@ pub mod data;
 
 use rocket::{self};
 
+/// Runs the server
 pub fn run(conf: data::Config, caps: data::Caps) -> Result<bool, String> {
-    /// Runs the server
-    //rocket::build()
-    //    .mount("/", rocket::routes![conf.caps])
-    //    .launch();
+    rocket::build().mount("/", rocket::routes![]).launch();
     return Ok(true);
 }
