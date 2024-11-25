@@ -7,13 +7,12 @@ use rocket::http::Status;
 use rocket::response::status;
 use xml::writer::{EmitterConfig, XmlEvent};
 
-
 /// Holds the config for torznab-toolkit.
-/// 
+///
 /// A search function (`/api?t=search`) and capabilities (`/api?t=caps` - `Caps`) are required, everything else is optional.
-/// 
+///
 /// <div class="warning">It's required to be set to <i>something</i>, which is why it's an Option set to None.
-/// 
+///
 /// However, this is NOT optional, and attempting to do anything with CONFIG not set will return an `Err`.</div>
 pub static mut CONFIG: Option<Config> = None;
 
@@ -23,11 +22,14 @@ pub static mut CONFIG: Option<Config> = None;
 #[get("/api?t=caps")]
 pub(crate) fn caps() -> status::Custom<String> {
     unsafe {
-        if CONFIG == None {
-            return status::Custom(
-                Status::InternalServerError,
-                "500 Internal server error: Config not specified".to_string(),
-            );
+        match CONFIG {
+            None => {
+                return status::Custom(
+                    Status::InternalServerError,
+                    "500 Internal server error: Config not specified".to_string(),
+                );
+            }
+            Some(_) => {}
         }
     }
 
@@ -121,7 +123,7 @@ mod tests {
             CONFIG = Some(create_config());
             println!("{:?}", CONFIG);
         }
-        caps();
+        println!("{:?}", caps());
     }
 
     #[test]
@@ -129,6 +131,6 @@ mod tests {
         unsafe {
             println!("{:?}", CONFIG);
         }
-        caps();
+        println!("{:?}", caps());
     }
 }
