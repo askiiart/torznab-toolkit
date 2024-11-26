@@ -20,11 +20,25 @@
 
 pub mod api;
 pub mod data;
+mod dummy;
 
 use rocket::{self};
 
 /// Runs the server
-pub fn run(conf: data::Config, caps: data::Caps) -> Result<bool, String> {
-    rocket::build().mount("/", rocket::routes![]).launch();
-    return Ok(true);
+pub async fn run(conf: data::Config) -> Result<bool, rocket::Error> {
+    unsafe {
+        api::CONFIG = Some(conf);
+    }
+    match rocket::build()
+        .mount("/", rocket::routes![api::caps])
+        .launch()
+        .await
+    {
+        Ok(_) => {
+            return Ok(true);
+        }
+        Err(e) => {
+            return Err(e);
+        }
+    }
 }

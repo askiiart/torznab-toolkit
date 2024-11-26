@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+actix-rt = "2.10.0"
 rocket = "0.5.1"
 serde = { version = "1.0.215", features = ["derive"] }
 xml-rs = "0.8.23"
