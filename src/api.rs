@@ -14,7 +14,7 @@ use xml::writer::{EmitterConfig, XmlEvent};
 /// <div class="warning">It's required to be set to <i>something</i>, which is why it's an Option set to None.
 ///
 /// However, this is NOT optional, and attempting to do anything with CONFIG not set will return an `Err`.</div>
-pub static mut CONFIG: Option<Config> = None;
+pub(crate) static mut CONFIG: Option<Config> = None;
 
 /// Capabilities API endpoint (`/api?t=caps`)
 // FIXME: VERY incomplete
@@ -22,14 +22,11 @@ pub static mut CONFIG: Option<Config> = None;
 #[get("/api?t=caps")]
 pub(crate) fn caps() -> status::Custom<RawXml<String>> {
     unsafe {
-        match CONFIG {
-            None => {
-                return status::Custom(
-                    Status::InternalServerError,
-                    RawXml("500 Internal server error: Config not specified".to_string()),
-                );
-            }
-            Some(_) => {}
+        if CONFIG.is_none() {
+            return status::Custom(
+                Status::InternalServerError,
+                RawXml("500 Internal server error: Config not specified".to_string()),
+            );
         }
     }
 
