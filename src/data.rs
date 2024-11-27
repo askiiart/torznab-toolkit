@@ -9,9 +9,13 @@ pub(crate) type SearchFunc = fn(String, Vec<String>) -> Result<String, String>;
 /// These fields are just those listed in the example on [torznab.github.io](https://torznab.github.io), there's no actual specification for thse fields.
 /// TODO: Update this to have customizable fields instead
 pub struct ServerInfo {
+    /// The title of the server
     pub title: Option<String>,
+    /// The email for the server info
     pub email: Option<String>,
+    /// The URL to the server's image (e.g. logo)
     pub image: Option<String>,
+    /// What version the server is - unrelated to torznab-toolkit's version, but may be used by the program
     pub version: Option<String>,
 }
 
@@ -25,49 +29,67 @@ pub struct Limits {
       In fact, I *really* hope you aren't - if you are, you're doing something extremely wrong
       But hey, it's an option
     */
+    /// The maximum number of entries that can be listed in a search query
     pub max: u64,
+    /// The default number of entries to be listed in a search query
     pub default: u64,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// A struct holding the info for a type of search
-/// - `search_type` must be `search`, `tv-search`, `movie-search`, `audio-search`, or `book-search`
-/// - `available`
 pub struct SearchInfo {
+    /// What type of search this is - must be `search`, `tv-search`, `movie-search`, `audio-search`, or `book-search`
     pub search_type: String,
+    /// Whether this search type is available
     pub available: bool,
+    /// The supported parameters for this search type
     pub supported_params: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// Contains subcategories, for use in `Category`
 pub struct Subcategory {
+    /// The numeric ID of a subcategory
+    ///
+    /// The (de facto?) standard is `xxyy`, xx being the first two digits of the category, and the last two digits specifying the subcategory; see also: Category
     pub id: String,
+    /// The name of the subcategory, e.g. "Anime" under the "TV" cateogyr
     pub name: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// Contains a category, for use in `Caps` and searches as a query parameter
 pub struct Category {
+    /// The numeric ID of a category
+    ///
+    /// The (de facto?) standard is `xxyy`, xx being the first two digits of the category, and the last two digits specifying the subcategory; see also: Subcategory
     pub id: String,
+    /// The name of the category, e.g. "Movies"
     pub name: String,
+    /// A vector of all the subcategory in this category
     pub subcategories: Vec<Subcategory>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// Contains a genre, for use in `Caps` and searches as a query parameter
 pub struct Genre {
+    /// The numeric ID of a genre
+    ///
+    /// I'm not aware of any sure standard for this; the specification for Torznab shows an example with an ID of 1.
     pub id: String,
+    /// The numeric ID of the category this genre is for.
     pub category_id: String,
+    /// The name of the genre
     pub name: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// Contains a tag, for use in `Caps` and searches as a query parameter
 pub struct Tag {
-    pub id: String,
-    pub category_id: String,
+    /// The name of a tag for a torrent
     pub name: String,
+    /// The description of the tag
+    pub description: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -108,7 +130,7 @@ pub struct Caps {
 /// A search function (/api?t=search) and capabilities (/api?t=caps - struct Caps) required
 /// Everything else is optional
 pub struct Config {
-    pub search: SearchFunc, // NOTE: This is NOT optional,
+    pub search: SearchFunc,
     pub auth: Option<AuthFunc>,
     pub caps: Caps,
     pub tvsearch: Option<SearchFunc>,
