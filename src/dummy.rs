@@ -10,7 +10,7 @@ fn dummy_auth_func(_a: String) -> Result<bool, String> {
 }
 
 /// Creates a bare-minimum config
-pub fn create_empty_config() -> Config {
+fn create_empty_config() -> Config {
     let mut searching = Vec::new();
     searching.push(SearchInfo {
         search_type: "search".to_string(),
