@@ -10,7 +10,7 @@ fn dummy_auth_func(_a: String) -> Result<bool, String> {
 }
 
 /// Creates a bare-minimum config
-fn create_empty_config() -> Config {
+pub(crate) fn create_empty_config() -> Config {
     let mut searching = Vec::new();
     searching.push(SearchInfo {
         search_type: "search".to_string(),
@@ -20,21 +20,21 @@ fn create_empty_config() -> Config {
 
     let mut subcategories = Vec::new();
     subcategories.push(Subcategory {
-        id: "a".to_string(),
+        id: 1010,
         name: "b".to_string(),
     });
 
     let mut categories = Vec::new();
     categories.push(Category {
-        id: "a".to_string(),
+        id: 1000,
         name: "b".to_string(),
         subcategories: subcategories,
     });
 
     let mut genres = Vec::new();
     genres.push(Genre {
-        id: "a".to_string(),
-        category_id: "b".to_string(),
+        id: 1,
+        category_id: 1000,
         name: "c".to_string(),
     });
 
@@ -54,10 +54,7 @@ fn create_empty_config() -> Config {
                 image: None,
                 version: Some("1.0".to_string()),
             },
-            limits: Limits {
-                max: 100,
-                default: 20,
-            },
+            limits: Limits { max: 1, default: 1 },
             searching: searching,
             categories: categories,
             genres: Some(genres),
@@ -102,7 +99,7 @@ mod tests {
         // in this case, CONFIG is still None
         // can't just use run() because that expects a Config, not an Option<Config>
         rocket::build()
-            .mount("/", rocket::routes![api::caps])
+            .mount("/", rocket::routes![api::caps, api::search])
             .launch()
             .await
             .unwrap();

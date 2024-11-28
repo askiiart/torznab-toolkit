@@ -30,7 +30,7 @@ pub async fn run(conf: data::Config) -> Result<bool, rocket::Error> {
         api::CONFIG = Some(conf);
     }
     match rocket::build()
-        .mount("/", rocket::routes![api::caps])
+        .mount("/", rocket::routes![api::caps, api::search])
         .launch()
         .await
     {

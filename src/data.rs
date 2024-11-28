@@ -1,4 +1,6 @@
 //! Contains tons of structs used by the library
+use rocket::FromForm;
+
 pub(crate) type AuthFunc = fn(String) -> Result<bool, String>;
 // TODO: Figure out what the arguments should be for a search function and what it should return
 pub(crate) type SearchFunc = fn(String, Vec<String>) -> Result<String, String>;
@@ -25,14 +27,14 @@ pub struct ServerInfo {
 /// `default` is the default number of results the program will return
 pub struct Limits {
     /*
-      I don't know why this would possibly need to be a u64, I can't imagine you'll be returning 18 quintillion results or whatever
+      I don't know why this would possibly need to be a u32, I can't imagine you'll be returning 4 billion results or whatever
       In fact, I *really* hope you aren't - if you are, you're doing something extremely wrong
       But hey, it's an option
     */
     /// The maximum number of entries that can be listed in a search query
-    pub max: u64,
+    pub max: u32,
     /// The default number of entries to be listed in a search query
-    pub default: u64,
+    pub default: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -52,7 +54,7 @@ pub struct Subcategory {
     /// The numeric ID of a subcategory
     ///
     /// The (de facto?) standard is `xxyy`, xx being the first two digits of the category, and the last two digits specifying the subcategory; see also: Category
-    pub id: String,
+    pub id: u32,
     /// The name of the subcategory, e.g. "Anime" under the "TV" cateogyr
     pub name: String,
 }
@@ -63,7 +65,7 @@ pub struct Category {
     /// The numeric ID of a category
     ///
     /// The (de facto?) standard is `xxyy`, xx being the first two digits of the category, and the last two digits specifying the subcategory; see also: Subcategory
-    pub id: String,
+    pub id: u32,
     /// The name of the category, e.g. "Movies"
     pub name: String,
     /// A vector of all the subcategory in this category
@@ -75,10 +77,10 @@ pub struct Category {
 pub struct Genre {
     /// The numeric ID of a genre
     ///
-    /// I'm not aware of any sure standard for this; the specification for Torznab shows an example with an ID of 1.
-    pub id: String,
+    /// I'm not aware of any standard for numbering this; the specification for Torznab shows an example with an ID of 1.
+    pub id: u32,
     /// The numeric ID of the category this genre is for.
-    pub category_id: String,
+    pub category_id: u32,
     /// The name of the genre
     pub name: String,
 }
@@ -93,27 +95,11 @@ pub struct Tag {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-/// Holds the configuration for the capabilities of the Torznab server
-///
-/// - server_info: `ServerInfo`
-///   - see: `ServerInfo` docs
-/// - limits: `Limits`
-///   - specifies the max and default items listed when searching
-///   - see: `Limits` docs
-/// - searching: `Vec<SearchInfo>`
-///   - specifies the capabilities of each search mode
-///   - see: `SearchInfo` docs
-/// - categories: `Vec<Category>`
-///   - lists known categories
-///   - see: `Category` docs
-/// - genres: `Option<Vec<Genre>>`
-///   - lists known genres, optional
-///   - see: `Genre` docs
+/// Holds the configuration for the capabilities of the Torznab server (used in `/api?t=caps`)
 ///
 /// <div class="warning">Note that this library might not support all the capabilities listed in yet, so check the README before listing capabilities, or just accept that unsupported capabilities will return error 404.
 ///
-/// It's recommended to add any capabilities you want, and set `available` to `false` in the `Caps` struct for any currently unsupported search types.</div>
-///
+/// It's recommended to add any capabilities you want, and set `available` to `false` in the [`Caps`] struct for any currently unsupported search types.</div>
 ///
 /// TODO: Add a way to partially(?) generate automatically from the Config
 pub struct Caps {
@@ -127,7 +113,7 @@ pub struct Caps {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// A struct that holds configuration for torznab-toolkit
-/// A search function (/api?t=search) and capabilities (/api?t=caps - struct Caps) required
+/// The search function (`/api?t=search`) and capabilities (`/api?t=caps` - struct [`Caps`]) are required
 /// Everything else is optional
 pub struct Config {
     pub search: SearchFunc,
@@ -137,4 +123,27 @@ pub struct Config {
     pub movie: Option<SearchFunc>,
     pub music: Option<SearchFunc>,
     pub book: Option<SearchFunc>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, FromForm)]
+/// A struct used by the API's search functions to hold its query parameters
+/// Currently required (AFAIK) because of limitations with rocket
+pub(crate) struct SearchForm {
+    /// The text query for the search
+    pub(crate) q: Option<String>,
+    /// The apikey, for authentication
+    pub(crate) apikey: Option<String>,
+    /// The list of numeric category IDs to be included in the search results
+    /// Returned by Rocket.rs as a string of comma-separated values, then split in the function to a `Vec<u32>`
+    pub(crate) cat: Option<String>,
+    /// The list of extended attribute names to be included in the search results
+    /// Returned by Rocket.rs as a string of comma-separated values, then split in the function to a `Vec<String>`
+    pub(crate) attrs: Option<String>,
+    /// Whether *all* extended attributes should be included in the search results; overrules `attrs`
+    /// Can be 0 or 1
+    pub(crate) extended: Option<u8>,
+    /// How many items to skip/offset by in the results.
+    pub(crate) offset: Option<u32>,
+    /// The maximum number of items to return - also limited to whatever `limits` is in [`Caps`]
+    pub(crate) limit: Option<u32>,
 }
