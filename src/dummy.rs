@@ -54,7 +54,10 @@ pub(crate) fn create_empty_config() -> Config {
                 image: None,
                 version: Some("1.0".to_string()),
             },
-            limits: Limits { max: 1, default: 1 },
+            limits: Limits {
+                max: 100,
+                default: 20,
+            },
             searching: searching,
             categories: categories,
             genres: Some(genres),

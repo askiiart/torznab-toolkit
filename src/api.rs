@@ -57,12 +57,12 @@ pub(crate) fn caps() -> status::Custom<RawXml<String>> {
 pub(crate) fn search(form: SearchForm) -> status::Custom<RawXml<String>> {
     // The compiler won't let you get a field from a struct in the Option here, since the default is None
     // So this is needed
-    let conf = create_empty_config();
+    let mut conf = create_empty_config();
     unsafe {
         if CONFIG.is_none() {
             return (*STATUS_CONFIG_NOT_SPECIFIED).clone();
         } else {
-            let conf: Config = CONFIG.clone().ok_or("").unwrap();
+            conf = CONFIG.clone().ok_or("").unwrap();
         }
     }
 
@@ -99,11 +99,9 @@ pub(crate) fn search(form: SearchForm) -> status::Custom<RawXml<String>> {
         offset = form.offset.ok_or(0).unwrap();
     }
 
-    let mut limit: u32 = 0;
-    limit = conf.caps.limits.max;
-    let wanted_limit = form.limit.ok_or(limit).unwrap();
-    if wanted_limit < limit {
-        limit = wanted_limit
+    let mut limit: u32 = form.limit.ok_or("").unwrap_or(conf.caps.limits.max);
+    if limit > conf.caps.limits.max {
+        limit = conf.caps.limits.max;
     }
 
     match conf.auth {
