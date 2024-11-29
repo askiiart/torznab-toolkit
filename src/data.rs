@@ -1,5 +1,7 @@
 //! Contains tons of structs used by the library
 
+use std::collections::HashMap;
+
 use rocket::FromForm;
 pub(crate) type AuthFunc = fn(String) -> Result<bool, String>;
 // TODO: Figure out what the arguments should be for a search function and what it should return
@@ -97,17 +99,23 @@ pub struct Tag {
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// Holds the configuration for the capabilities of the Torznab server (used in `/api?t=caps`)
 ///
-/// <div class="warning">Note that this library might not support all the capabilities listed in yet, so check the README before listing capabilities, or just accept that unsupported capabilities will return error 404.
+/// <div class="warning">Note that this library might not support all the capabilities listed in yet, so check the README before listing capabilities, or just accept that unsupported capabilities will return error 501.
 ///
 /// It's recommended to add any capabilities you want, and set `available` to `false` in the [`Caps`] struct for any currently unsupported search types.</div>
 ///
 /// TODO: Add a way to partially(?) generate automatically from the Config
 pub struct Caps {
-    pub server_info: ServerInfo,
+    /// The server info, like title - optional
+    pub server_info: Option<ServerInfo>,
+    /// The max and default number of items to be returned by queries - see [`Limits`]
     pub limits: Limits,
+    /// Info about each type of search
     pub searching: Vec<SearchInfo>,
+    /// What categories the server has - see [`Category`]
     pub categories: Vec<Category>,
+    /// What genres the server has - see [`Genre`] (optional)
     pub genres: Option<Vec<Genre>>,
+    /// What torrents can be tagged with - see [`Tag`] (optional)
     pub tags: Option<Vec<Tag>>,
 }
 
@@ -116,12 +124,19 @@ pub struct Caps {
 /// The search function (`/api?t=search`) and capabilities (`/api?t=caps` - struct [`Caps`]) are required
 /// Everything else is optional
 pub struct Config {
+    /// The function to use for a free text search
     pub search: SearchFunc,
+    /// The auth function - if not specified, then no authorization is needed.
     pub auth: Option<AuthFunc>,
+    /// The capabilities of the indexer - see [`Caps`]
     pub caps: Caps,
+    /// The function to use for a tv search
     pub tvsearch: Option<SearchFunc>,
+    /// The function to use for a movie search
     pub movie: Option<SearchFunc>,
+    /// The function to use for a music search
     pub music: Option<SearchFunc>,
+    /// The function to use for a book search
     pub book: Option<SearchFunc>,
 }
 
@@ -141,4 +156,21 @@ pub(crate) struct SearchParameters {
     pub(crate) offset: Option<u32>,
     /// The maximum number of items to return - also limited to whatever `limits` is in [`Caps`]
     pub(crate) limit: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+/// Holds the info for a torrent
+pub struct Torrent {
+    title: String,
+    description: Option<String>,
+    size: u64,
+    categories: Vec<Category>,
+    seeders: Option<u32>,
+    leechers: Option<u32>,
+    peers: Option<u32>,
+    infohash: Option<String>,
+    link: Option<String>,
+    torrent_file_url: Option<String>,
+    magnet_uri: Option<String>,
+    other_attributes: Option<HashMap<String, String>>,
 }

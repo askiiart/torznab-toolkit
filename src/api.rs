@@ -8,6 +8,7 @@ use rocket::http::Status;
 use rocket::response::status;
 use rocket::FromForm;
 use rocket::{get, response::content::RawXml};
+use std::collections::HashMap;
 use xml::writer::{EmitterConfig, XmlEvent};
 
 #[derive(Debug, Clone, PartialEq, Eq, FromForm)]
@@ -34,6 +35,7 @@ struct SearchForm {
 }
 
 impl SearchForm {
+    /// Converts it to a SearchParameters object
     fn to_parameters(&self, conf: Config) -> SearchParameters {
         // TODO: Clean up this code - split it into a separate function?
         let mut categories: Option<Vec<u32>> = None;
@@ -131,6 +133,7 @@ pub(crate) fn caps() -> status::Custom<RawXml<String>> {
 
 #[get("/api?t=search&<form..>")]
 /// The search function for the API
+// FIXME: VERY incomplete also
 pub(crate) fn search(form: SearchForm) -> status::Custom<RawXml<String>> {
     // The compiler won't let you get a field from a struct in the Option here, since the default is None
     // So this is needed
@@ -151,10 +154,7 @@ pub(crate) fn search(form: SearchForm) -> status::Custom<RawXml<String>> {
             match parameters.apikey {
                 Some(apikey) => {
                     if !auth(apikey).unwrap() {
-                        return status::Custom(
-                            Status::Unauthorized,
-                            RawXml("401 Unauthorized".to_string()),
-                        );
+                        unauthorized = true;
                     }
                 }
                 None => {

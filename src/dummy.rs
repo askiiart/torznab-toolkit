@@ -48,12 +48,12 @@ pub(crate) fn create_empty_config() -> Config {
         search: dummy_search_func,
         auth: Some(dummy_auth_func),
         caps: Caps {
-            server_info: ServerInfo {
+            server_info: Some(ServerInfo {
                 title: Some("Test Torznab server".to_string()),
                 email: Some("test@example.com".to_string()),
                 image: None,
                 version: Some("1.0".to_string()),
-            },
+            }),
             limits: Limits {
                 max: 100,
                 default: 20,
