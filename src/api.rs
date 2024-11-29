@@ -6,8 +6,84 @@ use crate::dummy::create_empty_config;
 use lazy_static::lazy_static;
 use rocket::http::Status;
 use rocket::response::status;
+use rocket::FromForm;
 use rocket::{get, response::content::RawXml};
 use xml::writer::{EmitterConfig, XmlEvent};
+
+#[derive(Debug, Clone, PartialEq, Eq, FromForm)]
+/// A struct used by the API's search functions to hold its query parameters
+/// Currently required (AFAIK) because of limitations with rocket
+struct SearchForm {
+    /// The text query for the search
+    q: Option<String>,
+    /// The apikey, for authentication
+    apikey: Option<String>,
+    /// The list of numeric category IDs to be included in the search results
+    /// Returned by Rocket.rs as a string of comma-separated values, then split in the function to a `Vec<u32>`
+    cat: Option<String>,
+    /// The list of extended attribute names to be included in the search results
+    /// Returned by Rocket.rs as a string of comma-separated values, then split in the function to a `Vec<String>`
+    attrs: Option<String>,
+    /// Whether *all* extended attributes should be included in the search results; overrules `attrs`
+    /// Can be 0 or 1
+    extended: Option<u8>,
+    /// How many items to skip/offset by in the results.
+    offset: Option<u32>,
+    /// The maximum number of items to return - also limited to whatever `limits` is in [`Caps`]
+    limit: Option<u32>,
+}
+
+impl SearchForm {
+    fn to_parameters(&self, conf: Config) -> SearchParameters {
+        // TODO: Clean up this code - split it into a separate function?
+        let mut categories: Option<Vec<u32>> = None;
+        if !self.cat.is_none() {
+            // unholy amalgation of code to make the comma-separated list of strings into a vector of integers
+            categories = Some(
+                self.cat
+                    .as_ref()
+                    .ok_or("")
+                    .unwrap()
+                    .split(",")
+                    .filter_map(|s| s.parse().ok())
+                    .collect(),
+            );
+        }
+
+        let mut extended_attribute_names: Option<Vec<String>> = None;
+        if !self.attrs.is_none() {
+            extended_attribute_names = Some(
+                self.attrs
+                    .as_ref()
+                    .ok_or("")
+                    .unwrap()
+                    .split(",")
+                    .map(|s| s.to_string())
+                    .collect(),
+            );
+        }
+
+        let mut extended_attrs: Option<bool> = None;
+        if !self.extended.is_none() && self.extended.ok_or(false).unwrap() == 1 {
+            extended_attrs = Some(true);
+        }
+
+        let mut limit: u32 = self.limit.ok_or("").unwrap_or(conf.caps.limits.max);
+        if limit > conf.caps.limits.max {
+            limit = conf.caps.limits.max;
+        }
+
+        return SearchParameters {
+            q: self.q.clone(),
+            apikey: self.apikey.clone(),
+            categories: categories,
+            attributes: extended_attribute_names,
+            extended_attrs: extended_attrs,
+            offset: self.offset,
+            limit: limit,
+        };
+    }
+}
 
 // Holds the config for torznab-toolkit.
 //
@@ -33,12 +109,12 @@ lazy_static! {
 pub(crate) fn caps() -> status::Custom<RawXml<String>> {
     // The compiler won't let you get a field from a struct in the Option here, since the default is None
     // So this is needed
-    let conf = create_empty_config();
+    let mut conf = create_empty_config();
     unsafe {
         if CONFIG.is_none() {
             return (*STATUS_CONFIG_NOT_SPECIFIED).clone();
         } else {
-            let conf: Config = CONFIG.clone().ok_or("").unwrap();
+            conf = CONFIG.clone().ok_or("").unwrap();
         }
     }
 
@@ -54,6 +130,7 @@ pub(crate) fn caps() -> status::Custom<RawXml<String>> {
 }
 
 #[get("/api?t=search&<form..>")]
+/// The search function for the API
 pub(crate) fn search(form: SearchForm) -> status::Custom<RawXml<String>> {
     // The compiler won't let you get a field from a struct in the Option here, since the default is None
     // So this is needed
@@ -66,54 +143,31 @@ pub(crate) fn search(form: SearchForm) -> status::Custom<RawXml<String>> {
         }
     }
 
-    // TODO: Clean up this code - split it into a separate function?
-    let mut apikey: String = "".to_string();
-    if !form.apikey.is_none() {
-        apikey = form.apikey.ok_or("").unwrap();
-    }
+    let parameters = form.to_parameters(conf.clone());
 
-    let mut categories: Vec<u32> = Vec::new();
-    if !form.cat.is_none() {
-        // unholy amalgation of code to make the comma-separated list of strings into a vector of integers
-        categories = form
-            .cat
-            .ok_or("")
-            .unwrap()
-            .split(",")
-            .filter_map(|s| s.parse().ok())
-            .collect();
-    }
-
-    let mut extended_attribute_names: String = "".to_string();
-    if !form.attrs.is_none() {
-        extended_attribute_names = form.attrs.ok_or("").unwrap().split(",").collect();
-    }
-
-    let mut extended_attrs: bool = false;
-    if !form.extended.is_none() && form.extended.ok_or(false).unwrap() == 1 {
-        extended_attrs = true;
-    }
-
-    let mut offset: u32 = 0;
-    if !form.offset.is_none() {
-        offset = form.offset.ok_or(0).unwrap();
-    }
-
-    let mut limit: u32 = form.limit.ok_or("").unwrap_or(conf.caps.limits.max);
-    if limit > conf.caps.limits.max {
-        limit = conf.caps.limits.max;
-    }
-
+    let mut unauthorized = false;
     match conf.auth {
         Some(auth) => {
-            if !auth(apikey).unwrap() {
-                return status::Custom(
-                    Status::Unauthorized,
-                    RawXml("401 Unauthorized".to_string()),
-                );
+            match parameters.apikey {
+                Some(apikey) => {
+                    if !auth(apikey).unwrap() {
+                        return status::Custom(
+                            Status::Unauthorized,
+                            RawXml("401 Unauthorized".to_string()),
+                        );
+                    }
+                }
+                None => {
+                    unauthorized = true;
+                }
             }
+            // that unwrap_or_else is to return "" if the apikey isn't specified
         }
         None => {}
+    }
+
+    if unauthorized {
+        return status::Custom(Status::Unauthorized, RawXml("401 Unauthorized".to_string()));
     }
 
     return status::Custom(

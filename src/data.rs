@@ -1,6 +1,6 @@
 //! Contains tons of structs used by the library
-use rocket::FromForm;
 
+use rocket::FromForm;
 pub(crate) type AuthFunc = fn(String) -> Result<bool, String>;
 // TODO: Figure out what the arguments should be for a search function and what it should return
 pub(crate) type SearchFunc = fn(String, Vec<String>) -> Result<String, String>;
@@ -126,24 +126,19 @@ pub struct Config {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, FromForm)]
-/// A struct used by the API's search functions to hold its query parameters
-/// Currently required (AFAIK) because of limitations with rocket
-pub(crate) struct SearchForm {
+pub(crate) struct SearchParameters {
     /// The text query for the search
     pub(crate) q: Option<String>,
     /// The apikey, for authentication
     pub(crate) apikey: Option<String>,
-    /// The list of numeric category IDs to be included in the search results
-    /// Returned by Rocket.rs as a string of comma-separated values, then split in the function to a `Vec<u32>`
-    pub(crate) cat: Option<String>,
-    /// The list of extended attribute names to be included in the search results
-    /// Returned by Rocket.rs as a string of comma-separated values, then split in the function to a `Vec<String>`
-    pub(crate) attrs: Option<String>,
-    /// Whether *all* extended attributes should be included in the search results; overrules `attrs`
-    /// Can be 0 or 1
-    pub(crate) extended: Option<u8>,
+    /// A [`Vec`] containing the numeric category IDs to be included in the search results
+    pub(crate) categories: Option<Vec<u32>>,
+    /// A [`Vec`] containing the extended attribute names to be included in the search results
+    pub(crate) attributes: Option<Vec<String>>,
+    /// Whether *all* extended attributes should be included in the search results; overrules `attributes`
+    pub(crate) extended_attrs: Option<bool>,
     /// How many items to skip/offset by in the results.
     pub(crate) offset: Option<u32>,
     /// The maximum number of items to return - also limited to whatever `limits` is in [`Caps`]
-    pub(crate) limit: Option<u32>,
+    pub(crate) limit: u32,
 }
