@@ -6,7 +6,7 @@ use std::collections::HashMap;
 /// HashMap equivalent of vec![]
 ///
 /// Example:
-/// ```rs
+/// ```rust
 /// hashmap!(("key", "value"))
 /// ```
 macro_rules! hashmap {

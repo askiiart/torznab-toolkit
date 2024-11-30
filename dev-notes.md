@@ -11,7 +11,7 @@
 
 example usage:
 
-```rs
+```rust
 let config = /* config goes here */
 
 fn main() -> Result {
@@ -25,7 +25,7 @@ fn main() -> Result {
 
 Queries are returned as an RSS feed something like this:
 
-```rss
+```rusts
 <rss version="1.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:torznab="http://torznab.com/schemas/2015/feed">
   <channel>
     <atom:link rel="self" type="application/rss+xml" />
