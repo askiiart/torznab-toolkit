@@ -4,7 +4,7 @@ A safe, multi-threaded toolkit for adding Torznab APIs to programs. You just foc
 
 Just fill in your own relevant functions and config, and torznab-toolkit will run the API for you
 
-```rs
+```rust
 use torznab_toolkit;
 let config: torznab_toolkit::config::Config = /* config goes here */
 
@@ -23,7 +23,7 @@ Note: I wrote the line above when I was tired. Don't ask me what *literal* truck
 
 | API call | Explanation                                                  | Implemented  |
 | -------- | ------------------------------------------------------------ | -----------  |
-| caps     | Returns the capabilities of the api.                         | ❌           |
+| caps     | Returns the capabilities of the api.                         | ✅           |
 | search   | Free text search query.                                      | ❌           |
 | tvsearch | Search query with tv specific query params and filtering.    | ❌           |
 | movie    | Search query with movie specific query params and filtering. | ❌           |
