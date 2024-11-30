@@ -8,22 +8,6 @@ pub(crate) type AuthFunc = fn(String) -> Result<bool, String>;
 pub(crate) type SearchFunc = fn(String, Vec<String>) -> Result<String, String>;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-/// Specify the ServerInfo to be listed in <server> for `/api?t=caps`
-///
-/// These fields are just those listed in the example on [torznab.github.io](https://torznab.github.io), there's no actual specification for thse fields.
-/// TODO: Update this to have customizable fields instead
-pub struct ServerInfo {
-    /// The title of the server
-    pub title: Option<String>,
-    /// The email for the server info
-    pub email: Option<String>,
-    /// The URL to the server's image (e.g. logo)
-    pub image: Option<String>,
-    /// What version the server is - unrelated to torznab-toolkit's version, but may be used by the program
-    pub version: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
 /// The maximum and defaults for the `limit` parameter in queries
 /// `max` is the maximum number of results the program can return
 /// `default` is the default number of results the program will return
@@ -47,6 +31,8 @@ pub struct SearchInfo {
     /// Whether this search type is available
     pub available: bool,
     /// The supported parameters for this search type
+    ///
+    /// Highly recommended: `q` (free text query)
     pub supported_params: Vec<String>,
 }
 
@@ -106,7 +92,9 @@ pub struct Tag {
 /// TODO: Add a way to partially(?) generate automatically from the Config
 pub struct Caps {
     /// The server info, like title - optional
-    pub server_info: Option<ServerInfo>,
+    ///
+    /// Examples: `version`, `title`, `email`, `url`, `image`
+    pub server_info: Option<HashMap<String, String>>,
     /// The max and default number of items to be returned by queries - see [`Limits`]
     pub limits: Limits,
     /// Info about each type of search

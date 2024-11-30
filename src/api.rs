@@ -1,6 +1,4 @@
 //! Contains the actual Torznab API
-use std::io::stdout;
-
 use crate::data::*;
 use crate::dummy::create_empty_config;
 use lazy_static::lazy_static;
@@ -8,7 +6,7 @@ use rocket::http::Status;
 use rocket::response::status;
 use rocket::FromForm;
 use rocket::{get, response::content::RawXml};
-use std::collections::HashMap;
+use std::str;
 use xml::writer::{EmitterConfig, XmlEvent};
 
 #[derive(Debug, Clone, PartialEq, Eq, FromForm)]
@@ -106,12 +104,11 @@ lazy_static! {
 /// Capabilities API endpoint (`/api?t=caps`)
 ///
 /// Note that an apikey is *not* required for this function, regardless of whether it's required for the rest.
-// FIXME: VERY incomplete
 #[get("/api?t=caps")]
 pub(crate) fn caps() -> status::Custom<RawXml<String>> {
     // The compiler won't let you get a field from a struct in the Option here, since the default is None
     // So this is needed
-    let mut conf = create_empty_config();
+    let conf;
     unsafe {
         if CONFIG.is_none() {
             return (*STATUS_CONFIG_NOT_SPECIFIED).clone();
@@ -120,15 +117,122 @@ pub(crate) fn caps() -> status::Custom<RawXml<String>> {
         }
     }
 
-    let output = stdout();
-    let mut writer = EmitterConfig::new().create_writer(output);
+    let buffer = Vec::new();
+    let mut writer = EmitterConfig::new().create_writer(buffer);
 
     writer.write(XmlEvent::start_element("caps")).unwrap();
-    writer.write(XmlEvent::start_element("server")).unwrap();
-    writer.write(XmlEvent::end_element()).unwrap();
-    writer.write(XmlEvent::start_element("caps")).unwrap();
-    writer.write(XmlEvent::end_element()).unwrap();
-    return status::Custom(Status::Ok, RawXml(stringify!(writer).to_string()));
+
+    // add the server info
+    // TODO: Clean up the code by making the elements a Vec (to be used as a stack), rather than manually keeping track of them
+    let mut element = XmlEvent::start_element("server");
+    match &conf.caps.server_info {
+        Some(server_info) => {
+            // needs to be a vec since if i just `.as_str()` them, they don't live long enough
+            let server_info_vec: Vec<(&String, &String)> = server_info.iter().collect();
+            for (key, value) in server_info_vec {
+                element = element.attr(key.as_str(), value.as_str());
+            }
+        }
+        None => {}
+    }
+    writer.write(element).unwrap();
+    writer.write(XmlEvent::end_element()).unwrap(); // close `server`
+
+    // add the limits
+    writer
+        .write(
+            XmlEvent::start_element("limits")
+                .attr("max", conf.caps.limits.max.to_string().as_str())
+                .attr("default", conf.caps.limits.default.to_string().as_str()),
+        )
+        .unwrap();
+    writer.write(XmlEvent::end_element()).unwrap(); // close `limits`
+
+    // Add the search types
+    writer.write(XmlEvent::start_element("searching")).unwrap();
+    for item in conf.caps.searching {
+        let mut available = "yes";
+        if !item.available {
+            available = "no";
+        }
+        writer
+            .write(
+                XmlEvent::start_element(item.search_type.as_str())
+                    .attr("available", available)
+                    .attr("supportedParams", item.supported_params.join(",").as_str()),
+            )
+            .unwrap();
+        writer.write(XmlEvent::end_element()).unwrap(); // close element
+    }
+    writer.write(XmlEvent::end_element()).unwrap(); // close `searching`
+
+    writer.write(XmlEvent::start_element("categories")).unwrap();
+    for i in conf.caps.categories {
+        writer
+            .write(
+                XmlEvent::start_element("category")
+                    .attr("id", i.id.to_string().as_str())
+                    .attr("name", i.name.as_str()),
+            )
+            .unwrap();
+        for j in i.subcategories {
+            writer
+                .write(
+                    XmlEvent::start_element("subcat")
+                        .attr("id", j.id.to_string().as_str())
+                        .attr("name", j.name.as_str()),
+                )
+                .unwrap();
+            writer.write(XmlEvent::end_element()).unwrap(); // close `subcat` element
+        }
+        writer.write(XmlEvent::end_element()).unwrap(); // close `category` element
+    }
+    writer.write(XmlEvent::end_element()).unwrap(); // close `categories`
+
+    match conf.caps.genres {
+        Some(genres) => {
+            writer.write(XmlEvent::start_element("genres")).unwrap();
+
+            for genre in genres {
+                writer
+                    .write(
+                        XmlEvent::start_element("genre")
+                            .attr("id", genre.id.to_string().as_str())
+                            .attr("categoryid", genre.category_id.to_string().as_str())
+                            .attr("name", genre.name.as_str()),
+                    )
+                    .unwrap();
+                writer.write(XmlEvent::end_element()).unwrap(); // close `genre` element
+            }
+            writer.write(XmlEvent::end_element()).unwrap(); // close `genres` element
+        }
+        None => {}
+    }
+
+    match conf.caps.tags {
+        Some(tags) => {
+            writer.write(XmlEvent::start_element("tags")).unwrap();
+
+            for tag in tags {
+                writer
+                    .write(
+                        XmlEvent::start_element("tag")
+                            .attr("name", tag.name.as_str())
+                            .attr("description", tag.description.as_str()),
+                    )
+                    .unwrap();
+            }
+            writer.write(XmlEvent::end_element()).unwrap(); // close `tags` element
+        }
+        None => {}
+    }
+
+    writer.write(XmlEvent::end_element()).unwrap(); // close `caps`
+    let result = str::from_utf8(writer.into_inner().as_slice())
+        .unwrap()
+        .to_string(); // Convert buffer to a String
+
+    return status::Custom(Status::Ok, RawXml(result));
 }
 
 #[get("/api?t=search&<form..>")]
@@ -137,7 +241,7 @@ pub(crate) fn caps() -> status::Custom<RawXml<String>> {
 pub(crate) fn search(form: SearchForm) -> status::Custom<RawXml<String>> {
     // The compiler won't let you get a field from a struct in the Option here, since the default is None
     // So this is needed
-    let mut conf = create_empty_config();
+    let conf;
     unsafe {
         if CONFIG.is_none() {
             return (*STATUS_CONFIG_NOT_SPECIFIED).clone();

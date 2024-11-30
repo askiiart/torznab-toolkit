@@ -1,5 +1,24 @@
 //! Some dummy stuff for testing the API
 use crate::data::*;
+use std::collections::HashMap;
+
+#[macro_export]
+/// HashMap equivalent of vec![]
+///
+/// Example:
+/// ```rs
+/// hashmap!(("key", "value"))
+/// ```
+macro_rules! hashmap {
+    ($(($value1:expr, $value2:expr)),*) => {{
+        let mut hm = HashMap::new();
+        $(
+            hm.insert($value1, $value2);
+        )*
+
+        hm
+    }};
+}
 
 fn dummy_search_func(_a: String, _b: Vec<String>) -> Result<String, String> {
     return Ok("hi".to_string());
@@ -11,49 +30,43 @@ fn dummy_auth_func(_a: String) -> Result<bool, String> {
 
 /// Creates a bare-minimum config
 pub(crate) fn create_empty_config() -> Config {
-    let mut searching = Vec::new();
-    searching.push(SearchInfo {
+    let searching = vec![SearchInfo {
         search_type: "search".to_string(),
         available: true,
-        supported_params: vec!["id".to_string()],
-    });
+        supported_params: vec!["q".to_string()],
+    }];
 
-    let mut subcategories = Vec::new();
-    subcategories.push(Subcategory {
+    let subcategories = vec![Subcategory {
         id: 1010,
         name: "b".to_string(),
-    });
+    }];
 
-    let mut categories = Vec::new();
-    categories.push(Category {
+    let categories = vec![Category {
         id: 1000,
-        name: "b".to_string(),
+        name: "a".to_string(),
         subcategories: subcategories,
-    });
+    }];
 
-    let mut genres = Vec::new();
-    genres.push(Genre {
+    let genres = vec![Genre {
         id: 1,
         category_id: 1000,
         name: "c".to_string(),
-    });
+    }];
 
-    let mut tags = Vec::new();
-    tags.push(Tag {
+    let tags = vec![Tag {
         name: "a".to_string(),
         description: "b".to_string(),
-    });
+    }];
 
     return Config {
         search: dummy_search_func,
         auth: Some(dummy_auth_func),
         caps: Caps {
-            server_info: Some(ServerInfo {
-                title: Some("Test Torznab server".to_string()),
-                email: Some("test@example.com".to_string()),
-                image: None,
-                version: Some("1.0".to_string()),
-            }),
+            server_info: Some(hashmap!(
+                ("title".to_string(), "Test Torznab server".to_string()),
+                ("email".to_string(), "test@example.com".to_string()),
+                ("version".to_string(), "1.0".to_string())
+            )),
             limits: Limits {
                 max: 100,
                 default: 20,
