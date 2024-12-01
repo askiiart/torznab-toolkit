@@ -1,6 +1,5 @@
 //! Contains the actual Torznab API
 use crate::data::*;
-use crate::dummy::create_empty_config;
 use lazy_static::lazy_static;
 use rocket::http::Status;
 use rocket::response::status;
