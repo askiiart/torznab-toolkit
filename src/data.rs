@@ -4,8 +4,7 @@ use std::collections::HashMap;
 
 use rocket::FromForm;
 pub(crate) type AuthFunc = fn(String) -> Result<bool, String>;
-// TODO: Figure out what the arguments should be for a search function and what it should return
-pub(crate) type SearchFunc = fn(String, Vec<String>) -> Result<String, String>;
+pub(crate) type SearchFunc = fn(SearchParameters) -> Result<Vec<Torrent>, String>;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// The maximum and defaults for the `limit` parameter in queries
@@ -37,7 +36,7 @@ pub struct SearchInfo {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-/// Contains subcategories, for use in `Category`
+/// Contains subcategories, for use in [`Category`]
 pub struct Subcategory {
     /// The numeric ID of a subcategory
     ///
@@ -48,7 +47,7 @@ pub struct Subcategory {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-/// Contains a category, for use in `Caps` and searches as a query parameter
+/// Contains a category, for use in [`Caps`] and searches as a query parameter
 pub struct Category {
     /// The numeric ID of a category
     ///
@@ -61,7 +60,7 @@ pub struct Category {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-/// Contains a genre, for use in `Caps` and searches as a query parameter
+/// Contains a genre, for use in [`Caps`] and searches as a query parameter
 pub struct Genre {
     /// The numeric ID of a genre
     ///
@@ -74,7 +73,7 @@ pub struct Genre {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-/// Contains a tag, for use in `Caps` and searches as a query parameter
+/// Contains a tag, for use in [`Caps`] and searches as a query parameter
 pub struct Tag {
     /// The name of a tag for a torrent
     pub name: String,
@@ -89,7 +88,6 @@ pub struct Tag {
 ///
 /// It's recommended to add any capabilities you want, and set `available` to `false` in the [`Caps`] struct for any currently unsupported search types.</div>
 ///
-/// TODO: Add a way to partially(?) generate automatically from the Config
 pub struct Caps {
     /// The server info, like title - optional
     ///
@@ -146,9 +144,12 @@ pub(crate) struct InternalSearchParameters {
 }
 
 impl InternalSearchParameters {
-    pub(crate) fn to_search_param(&self, search_type: String) -> SearchParameters {
+    /// Converts InternalSearchParameters to SearchParmaters, i.e. add `search_type`
+    ///
+    /// Search types: `search`, `tv-search`, `movie-search`, `audio-search`, `book-search`
+    pub(crate) fn to_search_param(&self, search_type: &str) -> SearchParameters {
         return SearchParameters {
-            search_type: search_type,
+            search_type: search_type.to_string(),
             q: self.q.clone(),
             apikey: self.apikey.clone(),
             categories: self.categories.clone(),
@@ -184,17 +185,28 @@ pub struct SearchParameters {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// Holds the info for a torrent
+///
+/// Any attributes not listed here are optional, and can be put in `other_attributes`; **however**, the following are recommended:
+/// - `seeders`
+/// - `leechers`
+/// - `peers`
+/// - `infohash`
+/// - `link` (link to a webpage; if not specified, will fallback to `torrent_file_url`, then `magnet_uri`)
+///
+/// <div class="warning">One of either `torrent_file_url` or `magnet_uri` are required.</div>
 pub struct Torrent {
-    title: String,
-    description: Option<String>,
-    size: u64,
-    categories: Vec<Category>,
-    seeders: Option<u32>,
-    leechers: Option<u32>,
-    peers: Option<u32>,
-    infohash: Option<String>,
-    link: Option<String>,
-    torrent_file_url: Option<String>,
-    magnet_uri: Option<String>,
-    other_attributes: Option<HashMap<String, String>>,
+    /// The title of the torrent
+    pub title: String,
+    /// The description of the torrent - optional
+    pub description: Option<String>,
+    /// The size of the torrent, **in bytes**
+    pub size: u64,
+    /// A vector of (sub)category IDs
+    pub category_ids: Vec<u32>,
+    /// The URL of the `.torrent` file
+    pub torrent_file_url: Option<String>,
+    /// The magnet URI o the torrent
+    pub magnet_uri: Option<String>,
+    /// Any other attributes
+    pub other_attributes: Option<HashMap<String, String>>,
 }

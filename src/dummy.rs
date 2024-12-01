@@ -20,8 +20,16 @@ macro_rules! hashmap {
     }};
 }
 
-fn dummy_search_func(_a: String, _b: Vec<String>) -> Result<String, String> {
-    return Ok("hi".to_string());
+fn dummy_search_func(_a: SearchParameters) -> Result<Vec<Torrent>, String> {
+    return Ok(vec![Torrent {
+        title: "totally normal torrent".to_string(),
+        description: None,
+        size: 9872349573,
+        category_ids: vec![1010],
+        torrent_file_url: Some("http://localhost/totally-normal.torrent".to_string()),
+        magnet_uri: Some("magnet:?xt=urn:btih:blahblahblahdothechachacha".to_string()),
+        other_attributes: None,
+    }]);
 }
 
 fn dummy_auth_func(_a: String) -> Result<bool, String> {

@@ -25,7 +25,7 @@ fn main() -> Result {
 
 Queries are returned as an RSS feed something like this:
 
-```rusts
+```rss
 <rss version="1.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:torznab="http://torznab.com/schemas/2015/feed">
   <channel>
     <atom:link rel="self" type="application/rss+xml" />
@@ -65,6 +65,7 @@ Item attributes:
   - URLs:
     - Main URI can either be a magnet URI or a link to a .torrent file: `<enclosure url="http://localhost/" length="0" type="application/x-bittorrent" />`
       - Length is ambiguous, so it will just be 0 (see below)
+      - for magnet: `application/x-bittorrent;x-scheme-handler/magnet`
     - If .torrent URL is provided, use that, if not use the magnet; also put the magnet in `magneturl`
   - Rest of available attributes: <https://torznab.github.io/spec-1.3-draft/torznab/Specification-v1.3.html?highlight=server#predefined-attributes>
 
