@@ -112,24 +112,60 @@ pub struct Caps {
 /// The search function (`/api?t=search`) and capabilities (`/api?t=caps` - struct [`Caps`]) are required
 /// Everything else is optional
 pub struct Config {
-    /// The function to use for a free text search
+    /// The function to use for all search types
+    ///
+    /// What search types are available is dependent on what's marked as available in the `searching` field of `caps` ([`Caps`])
+    ///
+    /// Search types: `search`, `tv-search`, `movie-search`, `audio-search`, `book-search`
     pub search: SearchFunc,
     /// The auth function - if not specified, then no authorization is needed.
     pub auth: Option<AuthFunc>,
     /// The capabilities of the indexer - see [`Caps`]
     pub caps: Caps,
-    /// The function to use for a tv search
-    pub tvsearch: Option<SearchFunc>,
-    /// The function to use for a movie search
-    pub movie: Option<SearchFunc>,
-    /// The function to use for a music search
-    pub music: Option<SearchFunc>,
-    /// The function to use for a book search
-    pub book: Option<SearchFunc>,
 }
 
+/// An internal struct to hold the parameters for a search
+///
+/// Before being sent to the "client" program, it's turned into a SearchParameters object by `to_search_param()`, adding the search type
 #[derive(Debug, Clone, PartialEq, Eq, FromForm)]
-pub(crate) struct SearchParameters {
+pub(crate) struct InternalSearchParameters {
+    /// The text query for the search
+    pub(crate) q: Option<String>,
+    /// The apikey, for authentication
+    pub(crate) apikey: Option<String>,
+    /// A [`Vec`] containing the numeric category IDs to be included in the search results
+    pub(crate) categories: Option<Vec<u32>>,
+    /// A [`Vec`] containing the extended attribute names to be included in the search results
+    pub(crate) attributes: Option<Vec<String>>,
+    /// Whether *all* extended attributes should be included in the search results; overrules `attributes`
+    pub(crate) extended_attrs: Option<bool>,
+    /// How many items to skip/offset by in the results.
+    pub(crate) offset: Option<u32>,
+    /// The maximum number of items to return - also limited to whatever `limits` is in [`Caps`]
+    pub(crate) limit: u32,
+}
+
+impl InternalSearchParameters {
+    pub(crate) fn to_search_param(&self, search_type: String) -> SearchParameters {
+        return SearchParameters {
+            search_type: search_type,
+            q: self.q.clone(),
+            apikey: self.apikey.clone(),
+            categories: self.categories.clone(),
+            attributes: self.attributes.clone(),
+            extended_attrs: self.extended_attrs,
+            offset: self.offset,
+            limit: self.limit,
+        };
+    }
+}
+
+/// Holds the parameters for a search query
+pub struct SearchParameters {
+    /// What type of search this is
+    ///
+    /// Search types: `search`, `tv-search`, `movie-search`, `audio-search`, `book-search`
+    pub(crate) search_type: String,
     /// The text query for the search
     pub(crate) q: Option<String>,
     /// The apikey, for authentication

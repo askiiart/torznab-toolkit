@@ -76,10 +76,6 @@ pub(crate) fn create_empty_config() -> Config {
             genres: Some(genres),
             tags: Some(tags),
         },
-        book: None,
-        movie: None,
-        music: None,
-        tvsearch: None,
     };
 }
 

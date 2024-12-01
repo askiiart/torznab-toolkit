@@ -33,7 +33,7 @@ struct SearchForm {
 
 impl SearchForm {
     /// Converts it to a SearchParameters object
-    fn to_parameters(&self, conf: Config) -> SearchParameters {
+    fn to_parameters(&self, conf: Config) -> InternalSearchParameters {
         // TODO: Clean up this code - split it into a separate function?
         let mut categories: Option<Vec<u32>> = None;
         if !self.cat.is_none() {
@@ -72,7 +72,7 @@ impl SearchForm {
             limit = conf.caps.limits.max;
         }
 
-        return SearchParameters {
+        return InternalSearchParameters {
             q: self.q.clone(),
             apikey: self.apikey.clone(),
             categories: categories,
