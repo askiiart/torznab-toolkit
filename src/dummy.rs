@@ -91,21 +91,21 @@ pub(crate) fn create_empty_config() -> Config {
 mod tests {
     use crate::{api, dummy::create_empty_config, run};
 
-    #[test]
-    fn caps_test_with_empty_config() {
+    #[actix_rt::test]
+    async fn caps_test_with_empty_config() {
         unsafe {
             crate::api::CONFIG = Some(create_empty_config());
             println!("{:?}", crate::api::CONFIG);
         }
-        println!("{:?}", crate::api::caps());
+        println!("{:?}", crate::api::caps().await);
     }
 
-    #[test]
-    fn caps_test_no_config() {
+    #[actix_rt::test]
+    async fn caps_test_no_config() {
         unsafe {
             println!("{:?}", crate::api::CONFIG);
         }
-        println!("{:?}", crate::api::caps());
+        println!("{:?}", crate::api::caps().await);
     }
 
     #[actix_rt::test]

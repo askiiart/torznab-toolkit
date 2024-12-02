@@ -101,7 +101,7 @@ lazy_static! {
 ///
 /// Note that an apikey is *not* required for this function, regardless of whether it's required for the rest.
 #[get("/api?t=caps")]
-pub(crate) fn caps() -> status::Custom<RawXml<String>> {
+pub(crate) async fn caps() -> status::Custom<RawXml<String>> {
     // The compiler won't let you get a field from a struct in the Option here, since the default is None
     // So this is needed
     let conf;
@@ -235,7 +235,7 @@ pub(crate) fn caps() -> status::Custom<RawXml<String>> {
 
 #[get("/api?t=search&<form..>")]
 /// The general search function
-pub(crate) fn search(form: SearchForm) -> status::Custom<RawXml<String>> {
+pub(crate) async fn search(form: SearchForm) -> status::Custom<RawXml<String>> {
     // The compiler won't let you get a field from a struct in the Option here, since the default is None
     // So this is needed
     let conf;
@@ -273,12 +273,12 @@ pub(crate) fn search(form: SearchForm) -> status::Custom<RawXml<String>> {
 
     let search_parameters: SearchParameters = parameters.to_search_param("search");
 
-    return search_handler(conf, search_parameters);
+    return search_handler(conf, search_parameters).await;
 }
 
 #[get("/api?t=tvsearch&<form..>")]
 /// The TV search function
-pub(crate) fn tv_search(form: SearchForm) -> status::Custom<RawXml<String>> {
+pub(crate) async fn tv_search(form: SearchForm) -> status::Custom<RawXml<String>> {
     // The compiler won't let you get a field from a struct in the Option here, since the default is None
     // So this is needed
     let conf;
@@ -323,12 +323,12 @@ pub(crate) fn tv_search(form: SearchForm) -> status::Custom<RawXml<String>> {
      * );
      */
 
-    return search_handler(conf, search_parameters);
+    return search_handler(conf, search_parameters).await;
 }
 
 #[get("/api?t=movie&<form..>")]
 /// The movie search function
-pub(crate) fn movie_search(form: SearchForm) -> status::Custom<RawXml<String>> {
+pub(crate) async fn movie_search(form: SearchForm) -> status::Custom<RawXml<String>> {
     // The compiler won't let you get a field from a struct in the Option here, since the default is None
     // So this is needed
     let conf;
@@ -373,12 +373,12 @@ pub(crate) fn movie_search(form: SearchForm) -> status::Custom<RawXml<String>> {
      * );
      */
 
-    return search_handler(conf, search_parameters);
+    return search_handler(conf, search_parameters).await;
 }
 
 #[get("/api?t=music&<form..>")]
 /// The music search function
-pub(crate) fn music_search(form: SearchForm) -> status::Custom<RawXml<String>> {
+pub(crate) async fn music_search(form: SearchForm) -> status::Custom<RawXml<String>> {
     // The compiler won't let you get a field from a struct in the Option here, since the default is None
     // So this is needed
     let conf;
@@ -423,12 +423,12 @@ pub(crate) fn music_search(form: SearchForm) -> status::Custom<RawXml<String>> {
      * );
      */
 
-    return search_handler(conf, search_parameters);
+    return search_handler(conf, search_parameters).await;
 }
 
 #[get("/api?t=book&<form..>")]
 /// The music search function
-pub(crate) fn book_search(form: SearchForm) -> status::Custom<RawXml<String>> {
+pub(crate) async fn book_search(form: SearchForm) -> status::Custom<RawXml<String>> {
     // The compiler won't let you get a field from a struct in the Option here, since the default is None
     // So this is needed
     let conf;
@@ -473,10 +473,10 @@ pub(crate) fn book_search(form: SearchForm) -> status::Custom<RawXml<String>> {
      * );
      */
 
-    return search_handler(conf, search_parameters);
+    return search_handler(conf, search_parameters).await;
 }
 
-fn search_handler(conf: Config, parameters: SearchParameters) -> status::Custom<RawXml<String>> {
+async fn search_handler(conf: Config, parameters: SearchParameters) -> status::Custom<RawXml<String>> {
     let buffer = Vec::new();
     let mut writer = EmitterConfig::new().create_writer(buffer);
     writer

@@ -1,6 +1,6 @@
 # Torznab Toolkit
 
-A safe, multi-threaded toolkit for adding Torznab APIs to programs. You just focus on the indexer itself, we abstract away the hell that is the Torznab API.
+A safe, multi-threaded, async toolkit for adding Torznab APIs to programs. You just focus on the indexer itself, we abstract away the hell that is the Torznab API.
 
 Just fill in your own relevant functions and config, and torznab-toolkit will run the API for you
 
