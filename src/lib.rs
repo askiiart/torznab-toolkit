@@ -8,6 +8,8 @@ pub mod data;
 mod dummy;
 
 use rocket;
+// imports for docs
+use crate::data::Config;
 
 /// Runs the server
 pub async fn run(conf: data::Config) -> Result<bool, rocket::Error> {
