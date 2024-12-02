@@ -32,7 +32,7 @@ struct SearchForm {
 
 impl SearchForm {
     /// Converts it to a SearchParameters object
-    fn to_parameters(&self, conf: Config) -> InternalSearchParameters {
+    fn to_parameters(&self, conf: Config, search_type: &str) -> SearchParameters {
         let mut categories: Option<Vec<u32>> = None;
         if !self.cat.is_none() {
             // unholy amalgation of code to make the comma-separated list of strings into a vector of integers
@@ -71,7 +71,8 @@ impl SearchForm {
             limit = 1
         }
 
-        return InternalSearchParameters {
+        return SearchParameters {
+            search_type: search_type.to_string(),
             q: self.q.clone(),
             apikey: self.apikey.clone(),
             categories: categories,
@@ -212,12 +213,12 @@ pub(crate) async fn search(
     form: SearchForm,
 ) -> status::Custom<RawXml<String>> {
     // oh god this is horrible but it works
-    let parameters = form.to_parameters((**conf).clone());
+    let parameters = form.to_parameters((**conf).clone(), "search");
 
     let mut unauthorized = false;
     match conf.auth {
         Some(auth) => {
-            match parameters.clone().apikey {
+            match parameters.apikey.clone() {
                 Some(apikey) => {
                     if !auth(apikey).unwrap() {
                         unauthorized = true;
@@ -236,9 +237,7 @@ pub(crate) async fn search(
         return status::Custom(Status::Unauthorized, RawXml("401 Unauthorized".to_string()));
     }
 
-    let search_parameters: SearchParameters = parameters.to_search_param("search");
-
-    return search_handler(conf, search_parameters).await;
+    return search_handler(conf, parameters).await;
 }
 
 #[get("/api?t=tvsearch&<form..>", rank = 3)]
@@ -248,7 +247,7 @@ pub(crate) async fn tv_search(
     form: SearchForm,
 ) -> status::Custom<RawXml<String>> {
     // oh god this is horrible but it works
-    let parameters = form.to_parameters((**conf).clone());
+    let parameters = form.to_parameters((**conf).clone(), "tv-search");
 
     let mut unauthorized = false;
     match conf.auth {
@@ -272,16 +271,7 @@ pub(crate) async fn tv_search(
         return status::Custom(Status::Unauthorized, RawXml("401 Unauthorized".to_string()));
     }
 
-    let search_parameters: SearchParameters = parameters.to_search_param("tv-search");
-
-    /*
-     * return status::Custom(
-     *     Status::NotImplemented,
-     *     RawXml("501 Not Implemented: Search function not implemented".to_string()),
-     * );
-     */
-
-    return search_handler(conf, search_parameters).await;
+    return search_handler(conf, parameters).await;
 }
 
 #[get("/api?t=movie&<form..>", rank = 4)]
@@ -291,7 +281,7 @@ pub(crate) async fn movie_search(
     form: SearchForm,
 ) -> status::Custom<RawXml<String>> {
     // oh god this is horrible but it works
-    let parameters = form.to_parameters((**conf).clone());
+    let parameters = form.to_parameters((**conf).clone(), "movie-search");
 
     let mut unauthorized = false;
     match conf.auth {
@@ -315,16 +305,7 @@ pub(crate) async fn movie_search(
         return status::Custom(Status::Unauthorized, RawXml("401 Unauthorized".to_string()));
     }
 
-    let search_parameters: SearchParameters = parameters.to_search_param("movie-search");
-
-    /*
-     * return status::Custom(
-     *     Status::NotImplemented,
-     *     RawXml("501 Not Implemented: Search function not implemented".to_string()),
-     * );
-     */
-
-    return search_handler(conf, search_parameters).await;
+    return search_handler(conf, parameters).await;
 }
 
 #[get("/api?t=music&<form..>", rank = 5)]
@@ -334,7 +315,7 @@ pub(crate) async fn music_search(
     form: SearchForm,
 ) -> status::Custom<RawXml<String>> {
     // oh god this is horrible but it works
-    let parameters = form.to_parameters((**conf).clone());
+    let parameters = form.to_parameters((**conf).clone(), "audio-search");
 
     let mut unauthorized = false;
     match conf.auth {
@@ -358,16 +339,7 @@ pub(crate) async fn music_search(
         return status::Custom(Status::Unauthorized, RawXml("401 Unauthorized".to_string()));
     }
 
-    let search_parameters: SearchParameters = parameters.to_search_param("audio-search");
-
-    /*
-     * return status::Custom(
-     *     Status::NotImplemented,
-     *     RawXml("501 Not Implemented: Search function not implemented".to_string()),
-     * );
-     */
-
-    return search_handler(conf, search_parameters).await;
+    return search_handler(conf, parameters).await;
 }
 
 #[get("/api?t=book&<form..>", rank = 6)]
@@ -377,7 +349,7 @@ pub(crate) async fn book_search(
     form: SearchForm,
 ) -> status::Custom<RawXml<String>> {
     // oh god this is horrible but it works
-    let parameters = form.to_parameters((**conf).clone());
+    let parameters = form.to_parameters((**conf).clone(), "book-search");
 
     let mut unauthorized = false;
     match conf.auth {
@@ -401,16 +373,7 @@ pub(crate) async fn book_search(
         return status::Custom(Status::Unauthorized, RawXml("401 Unauthorized".to_string()));
     }
 
-    let search_parameters: SearchParameters = parameters.to_search_param("book-search");
-
-    /*
-     * return status::Custom(
-     *     Status::NotImplemented,
-     *     RawXml("501 Not Implemented: Search function not implemented".to_string()),
-     * );
-     */
-
-    return search_handler(conf, search_parameters).await;
+    return search_handler(conf, parameters).await;
 }
 
 async fn search_handler(

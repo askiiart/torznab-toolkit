@@ -122,45 +122,7 @@ pub struct Config {
     pub caps: Caps,
 }
 
-/// An internal struct to hold the parameters for a search
-///
-/// Before being sent to the "client" program, it's turned into a SearchParameters object by `to_search_param()`, adding the search type
-#[derive(Debug, Clone, PartialEq, Eq, FromForm)]
-pub(crate) struct InternalSearchParameters {
-    /// The text query for the search
-    pub(crate) q: Option<String>,
-    /// The apikey, for authentication
-    pub(crate) apikey: Option<String>,
-    /// A [`Vec`] containing the numeric category IDs to be included in the search results
-    pub(crate) categories: Option<Vec<u32>>,
-    /// A [`Vec`] containing the extended attribute names to be included in the search results
-    pub(crate) attributes: Option<Vec<String>>,
-    /// Whether *all* extended attributes should be included in the search results; overrules `attributes`
-    pub(crate) extended_attrs: Option<bool>,
-    /// How many items to skip/offset by in the results.
-    pub(crate) offset: Option<u32>,
-    /// The maximum number of items to return - also limited to whatever `limits` is in [`Caps`]
-    pub(crate) limit: u32,
-}
-
-impl InternalSearchParameters {
-    /// Converts InternalSearchParameters to SearchParmaters, i.e. add `search_type`
-    ///
-    /// Search types: `search`, `tv-search`, `movie-search`, `audio-search`, `book-search`
-    pub(crate) fn to_search_param(&self, search_type: &str) -> SearchParameters {
-        return SearchParameters {
-            search_type: search_type.to_string(),
-            q: self.q.clone(),
-            apikey: self.apikey.clone(),
-            categories: self.categories.clone(),
-            attributes: self.attributes.clone(),
-            extended_attrs: self.extended_attrs,
-            offset: self.offset,
-            limit: self.limit,
-        };
-    }
-}
-
+#[derive(Debug, Clone, PartialEq, Eq)]
 /// Holds the parameters for a search query
 pub struct SearchParameters {
     /// What type of search this is

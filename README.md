@@ -2,7 +2,7 @@
 
 A safe, multi-threaded, async toolkit for adding Torznab APIs to programs. You just focus on the indexer itself, we abstract away the hell that is the Torznab API.
 
-Just fill in your own relevant functions and config, and torznab-toolkit will run the API for you
+Just fill in your own relevant functions and config ([`Config`]), and torznab-toolkit will run the API for you
 
 ```rust
 use torznab_toolkit;
@@ -11,7 +11,7 @@ let config: torznab_toolkit::config::Config = /* config goes here */
 torznab_toolkit::run(config);
 ```
 
-The environment variables `ROCKET_ADDRESS` and `ROCKET_PORT` specify the address and port it will run on; these currently cannot be configured any other way. See the [relevant docs](https://rocket.rs/guide/v0.5/deploying/) for details.
+To configure what it listens on, just change `ROCKET_ADDRESS` and `ROCKET_PORT`; see the [relevant docs](https://rocket.rs/guide/v0.5/deploying/) for details.
 
 ---
 
