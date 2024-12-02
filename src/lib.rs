@@ -4,7 +4,7 @@ pub(crate) mod api;
 pub mod data;
 mod dummy;
 
-use rocket::{self};
+use rocket;
 
 /// Runs the server
 pub async fn run(conf: data::Config) -> Result<bool, rocket::Error> {
