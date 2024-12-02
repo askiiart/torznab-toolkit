@@ -126,21 +126,21 @@ pub struct SearchParameters {
     /// What type of search this is
     ///
     /// Search types: `search`, `tv-search`, `movie-search`, `audio-search`, `book-search`
-    pub(crate) search_type: String,
+    pub search_type: String,
     /// The text query for the search
-    pub(crate) q: Option<String>,
+    pub q: Option<String>,
     /// The apikey, for authentication
-    pub(crate) apikey: Option<String>,
+    pub apikey: Option<String>,
     /// A [`Vec`] containing the numeric category IDs to be included in the search results
-    pub(crate) categories: Option<Vec<u32>>,
+    pub categories: Option<Vec<u32>>,
     /// A [`Vec`] containing the extended attribute names to be included in the search results
-    pub(crate) attributes: Option<Vec<String>>,
+    pub attributes: Option<Vec<String>>,
     /// Whether *all* extended attributes should be included in the search results; overrules `attributes`
-    pub(crate) extended_attrs: Option<bool>,
+    pub extended_attrs: Option<bool>,
     /// How many items to skip/offset by in the results.
-    pub(crate) offset: Option<u32>,
+    pub offset: Option<u32>,
     /// The maximum number of items to return - also limited to whatever `limits` is in [`Caps`]
-    pub(crate) limit: u32,
+    pub limit: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
