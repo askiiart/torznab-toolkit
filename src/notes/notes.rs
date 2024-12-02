@@ -1,6 +1,6 @@
 //! Notes regarding the usage of torznab-tooolkit, and its implementation of Torznab
 //!
-//! - Please implement whatever attributes for torrents you can whenever possible to improve search results; particularly, `season`, `ep`, and `*id` fields are recommended, besides those listed in [``]
+//! - Please implement whatever attributes for torrents you can whenever possible to improve search results; particularly, `season`, `ep`, and `*id` fields are recommended, besides those listed in [`Torrent`]
 //!   - Potential attributes are listed [here](https://torznab.github.io/spec-1.3-draft/torznab/Specification-v1.3.html#predefined-attributes)
 //! - Because the behavior of `length` is ambiguous, torznab-toolkit just sets it to 0; the size is just specified by the `size` attribute
 //!   - See [here](https://torznab.github.io/spec-1.3-draft/revisions/1.0-Torznab-Torrent-Support.html) for details
