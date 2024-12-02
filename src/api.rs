@@ -67,6 +67,9 @@ impl SearchForm {
         if limit > conf.caps.limits.max {
             limit = conf.caps.limits.max;
         }
+        if limit < 1 {
+            limit = 1
+        }
 
         return InternalSearchParameters {
             q: self.q.clone(),
