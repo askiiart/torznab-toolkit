@@ -12,6 +12,8 @@ use rocket;
 use crate::data::Config;
 
 /// Runs the server
+///
+/// Returns `Ok(true)` if it succeeds, otherwise returns the error from Rocket
 pub async fn run(conf: data::Config) -> Result<bool, rocket::Error> {
     match rocket::build()
         .mount(
