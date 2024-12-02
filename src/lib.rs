@@ -1,6 +1,6 @@
 #![warn(missing_docs)]
 #![doc = include_str!("../README.md")]
-pub mod api;
+pub(crate) mod api;
 pub mod data;
 mod dummy;
 
