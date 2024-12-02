@@ -1,8 +1,6 @@
 //! Contains tons of structs used by the library
 
 use std::collections::HashMap;
-
-use rocket::FromForm;
 pub(crate) type AuthFunc = fn(String) -> Result<bool, String>;
 pub(crate) type SearchFunc = fn(SearchParameters) -> Result<Vec<Torrent>, String>;
 
@@ -93,15 +91,15 @@ pub struct Caps {
     ///
     /// Examples: `version`, `title`, `email`, `url`, `image`
     pub server_info: Option<HashMap<String, String>>,
-    /// The max and default number of items to be returned by queries - see [`Limits`]
+    /// The max and default number of items to be returned by queries
     pub limits: Limits,
     /// Info about each type of search
     pub searching: Vec<SearchInfo>,
-    /// What categories the server has - see [`Category`]
+    /// What categories the server has
     pub categories: Vec<Category>,
-    /// What genres the server has - see [`Genre`] (optional)
+    /// What genres the server has (optional)
     pub genres: Option<Vec<Genre>>,
-    /// What torrents can be tagged with - see [`Tag`] (optional)
+    /// What torrents can be tagged with (optional)
     pub tags: Option<Vec<Tag>>,
 }
 
@@ -118,7 +116,7 @@ pub struct Config {
     pub search: SearchFunc,
     /// The auth function - if not specified, then no authorization is needed.
     pub auth: Option<AuthFunc>,
-    /// The capabilities of the indexer - see [`Caps`]
+    /// The capabilities of the indexer
     pub caps: Caps,
 }
 

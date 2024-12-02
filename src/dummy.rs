@@ -1,24 +1,6 @@
 //! Some dummy stuff for testing the API
 use crate::data::*;
-use std::collections::HashMap;
-
-#[macro_export]
-/// HashMap equivalent of vec![]
-///
-/// Example:
-/// ```rust
-/// hashmap!(("key", "value"))
-/// ```
-macro_rules! hashmap {
-    ($(($value1:expr, $value2:expr)),*) => {{
-        let mut hm = HashMap::new();
-        $(
-            hm.insert($value1, $value2);
-        )*
-
-        hm
-    }};
-}
+use std::{collections::HashMap, hash::Hash};
 
 fn dummy_search_func(_a: SearchParameters) -> Result<Vec<Torrent>, String> {
     return Ok(vec![Torrent {
@@ -66,15 +48,16 @@ pub(crate) fn create_empty_config() -> Config {
         description: "b".to_string(),
     }];
 
+    let mut server_info: HashMap<String, String> = HashMap::new();
+    server_info.insert("title".to_string(), "Test Torznab server".to_string());
+    server_info.insert("email".to_string(), "test@example.com".to_string());
+    server_info.insert("version".to_string(), "1.0".to_string());
+
     return Config {
         search: dummy_search_func,
         auth: Some(dummy_auth_func),
         caps: Caps {
-            server_info: Some(hashmap!(
-                ("title".to_string(), "Test Torznab server".to_string()),
-                ("email".to_string(), "test@example.com".to_string()),
-                ("version".to_string(), "1.0".to_string())
-            )),
+            server_info: Some(server_info),
             limits: Limits {
                 max: 100,
                 default: 20,

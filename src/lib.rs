@@ -1,3 +1,6 @@
+//! Links:
+//! - **[Tutorial](notes::tutorial)**
+//! - [Minor implementation and usage notes](notes::notes)
 #![warn(missing_docs)]
 #![doc = include_str!("../README.md")]
 pub(crate) mod api;

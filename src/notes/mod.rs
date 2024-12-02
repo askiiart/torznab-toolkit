@@ -1,2 +1,2 @@
-pub mod implementation;
-pub mod usage;
+pub mod notes;
+pub mod tutorial;

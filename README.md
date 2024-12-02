@@ -6,9 +6,9 @@ Just fill in your own relevant functions and config ([`Config`]), and torznab-to
 
 ```rust
 use torznab_toolkit;
-let config: torznab_toolkit::config::Config = /* config goes here */
+let config: torznab_toolkit::data::Config = /* config goes here */
 
-torznab_toolkit::run(config);
+torznab_toolkit::run(config).await.unwrap();
 ```
 
 To configure what it listens on, just change `ROCKET_ADDRESS` and `ROCKET_PORT`; see the [relevant docs](https://rocket.rs/guide/v0.5/deploying/) for details.
