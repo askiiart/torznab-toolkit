@@ -92,23 +92,6 @@ mod tests {
     use crate::{api, dummy::create_empty_config, run};
 
     #[actix_rt::test]
-    async fn caps_test_with_empty_config() {
-        unsafe {
-            crate::api::CONFIG = Some(create_empty_config());
-            println!("{:?}", crate::api::CONFIG);
-        }
-        println!("{:?}", crate::api::caps().await);
-    }
-
-    #[actix_rt::test]
-    async fn caps_test_no_config() {
-        unsafe {
-            println!("{:?}", crate::api::CONFIG);
-        }
-        println!("{:?}", crate::api::caps().await);
-    }
-
-    #[actix_rt::test]
     async fn api_with_empty_config() {
         run(create_empty_config()).await.unwrap();
     }

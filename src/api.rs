@@ -1,10 +1,9 @@
 //! Contains the actual Torznab API
 use crate::data::*;
-use lazy_static::lazy_static;
 use rocket::http::Status;
 use rocket::response::status;
-use rocket::FromForm;
 use rocket::{get, response::content::RawXml};
+use rocket::{FromForm, State};
 use std::str;
 use xml::writer::{EmitterConfig, XmlEvent};
 
@@ -81,41 +80,11 @@ impl SearchForm {
     }
 }
 
-// Holds the config for torznab-toolkit.
-//
-// A search function (`/api?t=search`) and capabilities (`/api?t=caps` - `Caps`) are required, everything else is optional.
-//
-// <div class="warning">It's required to be set to <i>something</i>, which is why it's an Option set to None.
-//
-// However, this is NOT optional, and attempting to do anything with CONFIG not set will return an `Err`.</div>
-
-pub(crate) static mut CONFIG: Option<Config> = None;
-lazy_static! {
-    static ref STATUS_CONFIG_NOT_SPECIFIED: status::Custom<RawXml<String>> = status::Custom(
-        Status::InternalServerError,
-        RawXml("500 Internal server error: Config not specified".to_string()),
-    );
-}
-
 /// Capabilities API endpoint (`/api?t=caps`)
 ///
 /// Note that an apikey is *not* required for this function, regardless of whether it's required for the rest.
-#[get("/api?t=caps")]
-pub(crate) async fn caps() -> status::Custom<RawXml<String>> {
-    // The compiler won't let you get a field from a struct in the Option here, since the default is None
-    // So this is needed
-    let conf;
-    unsafe {
-        match CONFIG {
-            Some(ref config) => {
-                conf = config.clone();
-            }
-            None => {
-                return (*STATUS_CONFIG_NOT_SPECIFIED).clone();
-            }
-        }
-    }
-
+#[get("/api?t=caps", rank = 1)]
+pub(crate) async fn caps(conf: &State<Config>) -> status::Custom<RawXml<String>> {
     let buffer = Vec::new();
     let mut writer = EmitterConfig::new().create_writer(buffer);
 
@@ -148,7 +117,7 @@ pub(crate) async fn caps() -> status::Custom<RawXml<String>> {
 
     // Add the search types
     writer.write(XmlEvent::start_element("searching")).unwrap();
-    for item in conf.caps.searching {
+    for item in &conf.caps.searching {
         let mut available = "yes";
         if !item.available {
             available = "no";
@@ -165,7 +134,7 @@ pub(crate) async fn caps() -> status::Custom<RawXml<String>> {
     writer.write(XmlEvent::end_element()).unwrap(); // close `searching`
 
     writer.write(XmlEvent::start_element("categories")).unwrap();
-    for i in conf.caps.categories {
+    for i in &conf.caps.categories {
         writer
             .write(
                 XmlEvent::start_element("category")
@@ -173,7 +142,7 @@ pub(crate) async fn caps() -> status::Custom<RawXml<String>> {
                     .attr("name", i.name.as_str()),
             )
             .unwrap();
-        for j in i.subcategories {
+        for j in &i.subcategories {
             writer
                 .write(
                     XmlEvent::start_element("subcat")
@@ -187,7 +156,7 @@ pub(crate) async fn caps() -> status::Custom<RawXml<String>> {
     }
     writer.write(XmlEvent::end_element()).unwrap(); // close `categories`
 
-    match conf.caps.genres {
+    match &conf.caps.genres {
         Some(genres) => {
             writer.write(XmlEvent::start_element("genres")).unwrap();
 
@@ -207,7 +176,7 @@ pub(crate) async fn caps() -> status::Custom<RawXml<String>> {
         None => {}
     }
 
-    match conf.caps.tags {
+    match &conf.caps.tags {
         Some(tags) => {
             writer.write(XmlEvent::start_element("tags")).unwrap();
 
@@ -233,21 +202,14 @@ pub(crate) async fn caps() -> status::Custom<RawXml<String>> {
     return status::Custom(Status::Ok, RawXml(result));
 }
 
-#[get("/api?t=search&<form..>")]
+#[get("/api?t=search&<form..>", rank = 2)]
 /// The general search function
-pub(crate) async fn search(form: SearchForm) -> status::Custom<RawXml<String>> {
-    // The compiler won't let you get a field from a struct in the Option here, since the default is None
-    // So this is needed
-    let conf;
-    unsafe {
-        if CONFIG.is_none() {
-            return (*STATUS_CONFIG_NOT_SPECIFIED).clone();
-        } else {
-            conf = CONFIG.clone().ok_or("").unwrap();
-        }
-    }
-
-    let parameters = form.to_parameters(conf.clone());
+pub(crate) async fn search(
+    conf: &State<Config>,
+    form: SearchForm,
+) -> status::Custom<RawXml<String>> {
+    // oh god this is horrible but it works
+    let parameters = form.to_parameters((**conf).clone());
 
     let mut unauthorized = false;
     match conf.auth {
@@ -276,21 +238,14 @@ pub(crate) async fn search(form: SearchForm) -> status::Custom<RawXml<String>> {
     return search_handler(conf, search_parameters).await;
 }
 
-#[get("/api?t=tvsearch&<form..>")]
+#[get("/api?t=tvsearch&<form..>", rank = 3)]
 /// The TV search function
-pub(crate) async fn tv_search(form: SearchForm) -> status::Custom<RawXml<String>> {
-    // The compiler won't let you get a field from a struct in the Option here, since the default is None
-    // So this is needed
-    let conf;
-    unsafe {
-        if CONFIG.is_none() {
-            return (*STATUS_CONFIG_NOT_SPECIFIED).clone();
-        } else {
-            conf = CONFIG.clone().ok_or("").unwrap();
-        }
-    }
-
-    let parameters = form.to_parameters(conf.clone());
+pub(crate) async fn tv_search(
+    conf: &State<Config>,
+    form: SearchForm,
+) -> status::Custom<RawXml<String>> {
+    // oh god this is horrible but it works
+    let parameters = form.to_parameters((**conf).clone());
 
     let mut unauthorized = false;
     match conf.auth {
@@ -326,21 +281,14 @@ pub(crate) async fn tv_search(form: SearchForm) -> status::Custom<RawXml<String>
     return search_handler(conf, search_parameters).await;
 }
 
-#[get("/api?t=movie&<form..>")]
+#[get("/api?t=movie&<form..>", rank = 4)]
 /// The movie search function
-pub(crate) async fn movie_search(form: SearchForm) -> status::Custom<RawXml<String>> {
-    // The compiler won't let you get a field from a struct in the Option here, since the default is None
-    // So this is needed
-    let conf;
-    unsafe {
-        if CONFIG.is_none() {
-            return (*STATUS_CONFIG_NOT_SPECIFIED).clone();
-        } else {
-            conf = CONFIG.clone().ok_or("").unwrap();
-        }
-    }
-
-    let parameters = form.to_parameters(conf.clone());
+pub(crate) async fn movie_search(
+    conf: &State<Config>,
+    form: SearchForm,
+) -> status::Custom<RawXml<String>> {
+    // oh god this is horrible but it works
+    let parameters = form.to_parameters((**conf).clone());
 
     let mut unauthorized = false;
     match conf.auth {
@@ -376,21 +324,14 @@ pub(crate) async fn movie_search(form: SearchForm) -> status::Custom<RawXml<Stri
     return search_handler(conf, search_parameters).await;
 }
 
-#[get("/api?t=music&<form..>")]
+#[get("/api?t=music&<form..>", rank = 5)]
 /// The music search function
-pub(crate) async fn music_search(form: SearchForm) -> status::Custom<RawXml<String>> {
-    // The compiler won't let you get a field from a struct in the Option here, since the default is None
-    // So this is needed
-    let conf;
-    unsafe {
-        if CONFIG.is_none() {
-            return (*STATUS_CONFIG_NOT_SPECIFIED).clone();
-        } else {
-            conf = CONFIG.clone().ok_or("").unwrap();
-        }
-    }
-
-    let parameters = form.to_parameters(conf.clone());
+pub(crate) async fn music_search(
+    conf: &State<Config>,
+    form: SearchForm,
+) -> status::Custom<RawXml<String>> {
+    // oh god this is horrible but it works
+    let parameters = form.to_parameters((**conf).clone());
 
     let mut unauthorized = false;
     match conf.auth {
@@ -426,21 +367,14 @@ pub(crate) async fn music_search(form: SearchForm) -> status::Custom<RawXml<Stri
     return search_handler(conf, search_parameters).await;
 }
 
-#[get("/api?t=book&<form..>")]
+#[get("/api?t=book&<form..>", rank = 6)]
 /// The music search function
-pub(crate) async fn book_search(form: SearchForm) -> status::Custom<RawXml<String>> {
-    // The compiler won't let you get a field from a struct in the Option here, since the default is None
-    // So this is needed
-    let conf;
-    unsafe {
-        if CONFIG.is_none() {
-            return (*STATUS_CONFIG_NOT_SPECIFIED).clone();
-        } else {
-            conf = CONFIG.clone().ok_or("").unwrap();
-        }
-    }
-
-    let parameters = form.to_parameters(conf.clone());
+pub(crate) async fn book_search(
+    conf: &State<Config>,
+    form: SearchForm,
+) -> status::Custom<RawXml<String>> {
+    // oh god this is horrible but it works
+    let parameters = form.to_parameters((**conf).clone());
 
     let mut unauthorized = false;
     match conf.auth {
@@ -476,7 +410,10 @@ pub(crate) async fn book_search(form: SearchForm) -> status::Custom<RawXml<Strin
     return search_handler(conf, search_parameters).await;
 }
 
-async fn search_handler(conf: Config, parameters: SearchParameters) -> status::Custom<RawXml<String>> {
+async fn search_handler(
+    conf: &State<Config>,
+    parameters: SearchParameters,
+) -> status::Custom<RawXml<String>> {
     let buffer = Vec::new();
     let mut writer = EmitterConfig::new().create_writer(buffer);
     writer
@@ -499,7 +436,7 @@ async fn search_handler(conf: Config, parameters: SearchParameters) -> status::C
     // add `title`
     writer.write(XmlEvent::start_element("title")).unwrap();
     let mut title_provided = false;
-    match conf.caps.server_info {
+    match &conf.caps.server_info {
         Some(server_info) => {
             if server_info.contains_key("title") {
                 match server_info.get("title") {

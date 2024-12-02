@@ -1277,7 +1277,6 @@ name = "torznab-toolkit"
 version = "0.1.0"
 dependencies = [
  "actix-rt",
- "lazy_static",
  "rocket",
  "serde",
  "xml-rs",

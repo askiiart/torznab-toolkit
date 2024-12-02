@@ -8,11 +8,19 @@ use rocket::{self};
 
 /// Runs the server
 pub async fn run(conf: data::Config) -> Result<bool, rocket::Error> {
-    unsafe {
-        api::CONFIG = Some(conf);
-    }
     match rocket::build()
-        .mount("/", rocket::routes![api::caps, api::search])
+        .mount(
+            "/",
+            rocket::routes![
+                api::caps,
+                api::search,
+                api::tv_search,
+                api::movie_search,
+                api::music_search,
+                api::book_search
+            ],
+        )
+        .manage(conf)
         .launch()
         .await
     {
