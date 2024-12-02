@@ -1,2 +1,2 @@
 pub mod usage;
-mod implementation;
+pub mod implementation;
