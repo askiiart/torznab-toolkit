@@ -8,6 +8,7 @@ description = "A safe, multi-threaded, async toolkit for adding Torznab APIs to 
 repository = "https://git.askiiart.net/askiiart/torznab-toolkit"
 keywords = ["torznab", "torrent", "torrents", "bittorrent"]
 categories = ["asynchronous"]
+exclude = ["dev-notes.md"]
 
 [dependencies]
 actix-rt = "2.10.0"
