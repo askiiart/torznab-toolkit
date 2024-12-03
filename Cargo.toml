@@ -2,6 +2,12 @@
 name = "torznab-toolkit"
 version = "0.2.0"
 edition = "2021"
+license = "GPL-3.0-or-later"
+readme = "README.md"
+description = "A safe, multi-threaded, async toolkit for adding Torznab APIs to programs."
+repository = "https://git.askiiart.net/askiiart/torznab-toolkit"
+keywords = ["torznab", "torrent", "torrents", "bittorrent"]
+categories = ["asynchronous"]
 
 [dependencies]
 actix-rt = "2.10.0"
