@@ -3,11 +3,11 @@
 //! First off, you should create a search function. This function will handle all search types, with what type being specified in the parameter's `search_type` field (`search`, `tv-search`, `movie-search`, `audio-search`, or `movie-search`). Given those parameters, the search function then returns a [`Result`]<[`Vec`]<[`Torrent`]>, [`String`]> object.
 //! The torrents will be listed by the API in the order they're returned here
 //!
-//! ```rust
+//! ```
 //! use torznab_toolkit::data::{SearchParameters, Torrent};
 //!
 //! fn search(parameters: SearchParameters) -> Result<Vec<Torrent>, String> {
-//! return Ok(vec![Torrent {
+//!     return Ok(vec![Torrent {
 //!         title: "totally normal torrent".to_string(),
 //!         description: None,
 //!         size: 2484345508,
@@ -21,7 +21,7 @@
 //!
 //! If you want authentication, you can also create a function for that; returning true indicates that the apikey is valid.
 //!
-//! ```rust
+//! ```
 //! fn auth(apikey: String) -> Result<bool, String> {
 //!     if apikey == "letmein".to_string() {    
 //!         return Ok(true);
@@ -37,11 +37,9 @@
 //!
 //! Most of the config will be part of [`Caps`]. For details on all these, just check out the doc pages for each of the fields.
 //!
-//! TODO: Add examples for each struct used in [`Caps`]
-//!
 //! With all that, you can now start up the server, which is simple:
 //!
-//! ```rust
+//! ```
 //! use torznab_toolkit;
 //! let config: torznab_toolkit::data::Config = /* config goes here */
 //!

@@ -1,13 +1,24 @@
 //! Contains tons of structs used by the library
-
+//! 
+//! All examples here are based off the [Torznab spec](https://torznab.github.io/spec-1.3-draft/torznab/Specification-v1.3.html)'s `/api?caps` example.
 use std::collections::HashMap;
 pub(crate) type AuthFunc = fn(String) -> Result<bool, String>;
 pub(crate) type SearchFunc = fn(SearchParameters) -> Result<Vec<Torrent>, String>;
+
+// TODO: Redo this all so that is uses builders with `AsRef<str>` arguments instead
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// The maximum and defaults for the `limit` parameter in queries
 /// `max` is the maximum number of results the program can return
 /// `default` is the default number of results the program will return
+///
+/// Example:
+/// ```
+/// let query_limits = Limits {
+///     max: 100, // maximum of 100 results per search query
+///     default: 50,  // default of 50
+/// };
+/// ```
 pub struct Limits {
     /*
       I don't know why this would possibly need to be a u32, I can't imagine you'll be returning 4 billion results or whatever
@@ -22,6 +33,16 @@ pub struct Limits {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// A struct holding the info for a type of search
+///
+/// Example:
+/// ```
+/// let tv_query_search_info = SearchInfo {
+///     search_type: "tv-search".to_string(),
+///     available: true,
+///     supported_params: vec!["q", "rid", "tvdbid", "season", "ep"]
+///     .into_iter().map(|i| i.to_string()).collect::<String>(), // this bit's just to make all the `str`s to `String`s
+/// };
+/// ```
 pub struct SearchInfo {
     /// What type of search this is - must be `search`, `tv-search`, `movie-search`, `audio-search`, or `book-search`
     pub search_type: String,
@@ -35,6 +56,14 @@ pub struct SearchInfo {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// Contains subcategories, for use in [`Category`]
+///
+/// Example:
+/// ```
+/// let subcat = Subcategory {
+///     id: 2010,
+///     name: "Foreign".to_string(),
+/// };
+/// ```
 pub struct Subcategory {
     /// The numeric ID of a subcategory
     ///
@@ -46,6 +75,15 @@ pub struct Subcategory {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// Contains a category, for use in [`Caps`] and searches as a query parameter
+/// 
+/// Example, using `subcat` from the [`Subcategory`] example:
+/// ```
+/// let category = Category {
+///     id: 2000,
+///     name: "Movies".to_string(),
+///     subcategory: vec![subcat],
+/// };
+/// ```
 pub struct Category {
     /// The numeric ID of a category
     ///
@@ -59,6 +97,15 @@ pub struct Category {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// Contains a genre, for use in [`Caps`] and searches as a query parameter
+/// 
+/// Example:
+/// ```
+/// let genre = Genre {
+///     id: 1,
+///     category_id: 5000,
+///     name: "Kids".to_string(),
+/// };
+/// ```
 pub struct Genre {
     /// The numeric ID of a genre
     ///
@@ -72,6 +119,15 @@ pub struct Genre {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// Contains a tag, for use in [`Caps`] and searches as a query parameter
+/// 
+/// Example:
+/// 
+/// ```
+/// let tag = Tag {
+///     name: "trusted".to_string(),
+///     description: "Uploader has high reputation".to_string(),
+/// };
+/// ```
 pub struct Tag {
     /// The name of a tag for a torrent
     pub name: String,
@@ -86,6 +142,20 @@ pub struct Tag {
 ///
 /// It's recommended to add any capabilities you want, and set `available` to `false` in the [`Caps`] struct for any currently unsupported search types.</div>
 ///
+/// Example, using other examples:
+/// ```
+/// let mut info: HashMap<String, String> = HashMap::new();
+/// info.insert("version".to_string(), "1.1".to_string());
+/// 
+/// let caps_data = Caps {
+///     server_info: Some(info),
+///     limits: query_limits,
+///     searching: vec![tv_query_search_info],
+///     categories: vec![category],
+///     genres: Some(vec![genre]),
+///     tags: Some(vec![tag]),
+/// };
+/// ```
 pub struct Caps {
     /// The server info, like title - optional
     ///
@@ -107,6 +177,27 @@ pub struct Caps {
 /// A struct that holds configuration for torznab-toolkit
 /// The search function (`/api?t=search`) and capabilities (`/api?t=caps` - struct [`Caps`]) are required
 /// Everything else is optional
+/// 
+/// Example, using other examples:
+/// ```
+/// fn search_func(parameters: SearchParameters) -> Result<Vec<Torrent>, String> {
+///     let torrent = /* see `Torrent` example */
+///     return torrent;
+/// }
+/// 
+/// fn auth_func(apikey: String) -> Result<bool, String> {
+///     if apikey == "letmein".to_string() {    
+///         return Ok(true);
+///     }
+///     return Ok(false);
+/// }
+/// 
+/// let conf = Config {
+///     search: search,
+///     auth: Some(auth),
+///     caps: caps_data,
+/// }
+/// ```
 pub struct Config {
     /// The function to use for all search types
     ///
@@ -154,6 +245,18 @@ pub struct SearchParameters {
 /// - `link` (link to a webpage; if not specified, will fallback to `torrent_file_url`, then `magnet_uri`)
 ///
 /// <div class="warning">One of either `torrent_file_url` or `magnet_uri` are required.</div>
+/// Example:
+/// ```
+/// let torrent = Torrent {
+///     title: "totally normal torrent".to_string(),
+///     description: None,
+///     size: 2484345508,
+///     category_ids: vec![1010],
+///     torrent_file_url: Some("http://localhost/totally-normal.torrent".to_string()),
+///     magnet_uri: Some("magnet:?xt=urn:btih:blahblahblahdothechachacha".to_string()),
+///     other_attributes: None,
+/// };
+/// ```
 pub struct Torrent {
     /// The title of the torrent
     pub title: String,
