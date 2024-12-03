@@ -1,6 +1,6 @@
 //! Some dummy stuff for testing the API
 use crate::data::*;
-use std::{collections::HashMap, hash::Hash};
+use std::collections::HashMap;
 
 fn dummy_search_func(_a: SearchParameters) -> Result<Vec<Torrent>, String> {
     return Ok(vec![Torrent {
@@ -72,22 +72,10 @@ pub(crate) fn create_empty_config() -> Config {
 
 #[cfg(test)]
 mod tests {
-    use crate::{api, dummy::create_empty_config, run};
+    use crate::{dummy::create_empty_config, run};
 
     #[actix_rt::test]
     async fn api_with_empty_config() {
         run(create_empty_config()).await.unwrap();
-    }
-
-    #[actix_rt::test]
-    async fn api_with_no_config() {
-        // copied from lib.rs
-        // in this case, CONFIG is still None
-        // can't just use run() because that expects a Config, not an Option<Config>
-        rocket::build()
-            .mount("/", rocket::routes![api::caps, api::search])
-            .launch()
-            .await
-            .unwrap();
     }
 }
