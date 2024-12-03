@@ -1,5 +1,5 @@
 //! Contains tons of structs used by the library
-//! 
+//!
 //! All examples here are based off the [Torznab spec](https://torznab.github.io/spec-1.3-draft/torznab/Specification-v1.3.html)'s `/api?caps` example.
 use std::collections::HashMap;
 pub(crate) type AuthFunc = fn(String) -> Result<bool, String>;
@@ -75,7 +75,7 @@ pub struct Subcategory {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// Contains a category, for use in [`Caps`] and searches as a query parameter
-/// 
+///
 /// Example, using `subcat` from the [`Subcategory`] example:
 /// ```
 /// let category = Category {
@@ -97,7 +97,7 @@ pub struct Category {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// Contains a genre, for use in [`Caps`] and searches as a query parameter
-/// 
+///
 /// Example:
 /// ```
 /// let genre = Genre {
@@ -119,9 +119,9 @@ pub struct Genre {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// Contains a tag, for use in [`Caps`] and searches as a query parameter
-/// 
+///
 /// Example:
-/// 
+///
 /// ```
 /// let tag = Tag {
 ///     name: "trusted".to_string(),
@@ -146,7 +146,7 @@ pub struct Tag {
 /// ```
 /// let mut info: HashMap<String, String> = HashMap::new();
 /// info.insert("version".to_string(), "1.1".to_string());
-/// 
+///
 /// let caps_data = Caps {
 ///     server_info: Some(info),
 ///     limits: query_limits,
@@ -177,21 +177,21 @@ pub struct Caps {
 /// A struct that holds configuration for torznab-toolkit
 /// The search function (`/api?t=search`) and capabilities (`/api?t=caps` - struct [`Caps`]) are required
 /// Everything else is optional
-/// 
+///
 /// Example, using other examples:
 /// ```
 /// fn search_func(parameters: SearchParameters) -> Result<Vec<Torrent>, String> {
 ///     let torrent = /* see `Torrent` example */
 ///     return torrent;
 /// }
-/// 
+///
 /// fn auth_func(apikey: String) -> Result<bool, String> {
 ///     if apikey == "letmein".to_string() {    
 ///         return Ok(true);
 ///     }
 ///     return Ok(false);
 /// }
-/// 
+///
 /// let conf = Config {
 ///     search: search,
 ///     auth: Some(auth),
