@@ -4,6 +4,7 @@ use rocket::http::Status;
 use rocket::response::status;
 use rocket::{get, response::content::RawXml};
 use rocket::{FromForm, State};
+use std::borrow::Borrow;
 use std::str;
 use xml::writer::{EmitterConfig, XmlEvent};
 
@@ -32,38 +33,38 @@ struct SearchForm {
 
 impl SearchForm {
     /// Converts it to a SearchParameters object
-    fn to_parameters(&self, conf: Config, search_type: &str) -> SearchParameters {
-        let mut categories: Option<Vec<u32>> = None;
-        if !self.cat.is_none() {
-            // unholy amalgation of code to make the comma-separated list of strings into a vector of integers
-            categories = Some(
-                self.cat
-                    .as_ref()
-                    .unwrap()
-                    .split(",")
-                    .filter_map(|s| s.parse().ok())
-                    .collect(),
-            );
-        }
+    fn to_parameters(
+        &self,
+        conf: impl Borrow<Config>,
+        search_type: impl AsRef<str>,
+    ) -> SearchParameters {
+        let search_type: &str = search_type.as_ref();
+        let conf: Config = conf.borrow().clone();
 
-        let mut extended_attribute_names: Option<Vec<String>> = None;
-        if !self.attrs.is_none() {
-            extended_attribute_names = Some(
-                self.attrs
-                    .as_ref()
-                    .unwrap()
+        let split = |string: String| -> Option<Vec<u32>> {
+            Some(
+                string
                     .split(",")
-                    .map(|s| s.to_string())
-                    .collect(),
-            );
-        }
+                    .filter_map(|s| s.parse::<u32>().ok())
+                    .collect::<Vec<u32>>(),
+            )
+        };
 
-        let mut extended_attrs: Option<bool> = None;
+        let categories = self.cat.clone().and_then(split);
+
+        // also, let's just make it a closure at this point
+        let extended_attribute_names: Option<Vec<String>> = self
+            .attrs
+            .clone()
+            .and_then(|l| Some(l.split(",").map(|s| s.to_string()).collect()));
+
+        // let mut extended_attrs: Option<bool> = self.extended.and_then(|k| if k == 1 { Some(true) } else { Some(false) }); // was this what you were trying to do?
+        let mut extended_attrs = None;
         if !self.extended.is_none() && self.extended.ok_or(false).unwrap() == 1 {
             extended_attrs = Some(true);
         }
 
-        let mut limit: u32 = self.limit.ok_or("").unwrap_or(conf.caps.limits.max);
+        let mut limit: u32 = self.limit.unwrap_or(conf.caps.limits.default);
         if limit > conf.caps.limits.max {
             limit = conf.caps.limits.max;
         }
