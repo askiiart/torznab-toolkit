@@ -7,7 +7,7 @@ readme = "README.md"
 description = "A safe, multi-threaded, async toolkit for adding Torznab APIs to programs."
 repository = "https://git.askiiart.net/askiiart/torznab-toolkit"
 keywords = ["torznab", "torrent", "torrents", "bittorrent"]
-categories = ["asynchronous"]
+categories = ["asynchronous", "api-bindings"]
 exclude = ["dev-notes.md"]
 
 [dependencies]
